@@ -1,0 +1,25 @@
+{
+  "mission_id": "tpos_2021",
+  "header": {
+    "title": "2021 Tropical Pacific Observing System Mission",
+    "href": "https://www.pmel.noaa.gov/tags/tpos",
+    "logos": [
+      {
+        "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
+      }
+    ]
+  },
+  "ui": {
+    "max_columns": 1
+  },
+  "drones": {
+    "1065.0": {
+      "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1065_tpos_2021",
+      "label": "1065"
+    },
+    "1066.0": {
+      "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_tpos_2021",
+      "label": "1066"
+    }
+  }
+}

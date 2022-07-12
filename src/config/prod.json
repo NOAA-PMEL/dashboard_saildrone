@@ -1,0 +1,255 @@
+{
+  "config": {
+    "ui": {
+      "days_ago": 7,
+      "cones_url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\"name,index\")",
+      "html_title": "Saildrone Data",
+      "title": "2021 Saildrone Missions",
+      "href": "https://www.pmel.noaa.gov/",
+      "max_columns": 3,
+      "logos": [
+        {
+          "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
+        }
+      ]
+    },
+    "missions": [
+      {
+        "mission_id": "wsm",
+        "ui": {
+          "title": "2021 Hurricane Mission",
+          "href": "https://www.pmel.noaa.gov/saildrone-hurricane2021/mission_blog.html",
+          "cones_url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\\\"name,index\\\")",
+          "days_ago": 14,
+          "orgs": [
+            {
+              "org": "Pacific Marine Environmental Laboratory",
+              "url": "https://www.pmel.noaa.gov/"
+            },
+            {
+              "org": "Atlantic Oceanographic and Meteorological Laboratory",
+              "url": "https://www.aoml.noaa.gov/"
+            }
+          ]
+        },
+        "drones": {
+          "1031.0": {
+            "label": "1031",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1031_hurricane_2021"
+          },
+          "1040.0": {
+            "label": "1040",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1040_hurricane_2021"
+          },
+          "1045.0": {
+            "label": "1045",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1045_hurricane_2021"
+          },
+          "1048.0": {
+            "label": "1048",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1048_hurricane_2021"
+          },
+          "1060.0": {
+            "label": "1060",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1060_hurricane_2021"
+          }
+        }
+      },
+      {
+        "mission_id": "tpos_2021",
+        "ui": {
+          "title": "2021 Tropical Pacific Observing System Mission",
+          "href": "https://www.pmel.noaa.gov/tags/tpos",
+          "max_columns": 1,
+          "days_ago": 14,
+          "logos": [
+            {
+              "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
+            }
+          ]
+        },
+        "drones": {
+          "1065.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1065_tpos_2021",
+            "label": "1065"
+          },
+          "1066.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_tpos_2021",
+            "label": "1066"
+          }
+        }
+      },
+      {
+        "mission_id": " swfsc_nrt",
+        "ui": {
+          "title": "2021 NOAA SWFSC NRT Mission",
+          "href": "https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center",
+          "max_columns": 3,
+          "days_ago": 14,
+          "logos": [
+            {
+              "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
+            }
+          ]
+        },
+        "drones": {
+          "1055.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1055_swfsc_2021",
+            "label": "1055"
+          },
+          "1059.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1059_swfsc_2021",
+            "label": "1059"
+          }
+        }
+      },
+      {
+        "mission_id": " nwfsc_hake",
+        "ui": {
+          "title": "2021 NOAA NWFSC Hake Survey Mission",
+          "href": "https://www.fisheries.noaa.gov/about/northwest-fisheries-science-center",
+          "max_columns": 3,
+          "days_ago": 14,
+          "logos": [
+            {
+              "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
+            }
+          ]
+        },
+        "drones": {
+          "1063.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1063_hake_2021",
+            "label": "1063"
+          },
+          "1064.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1064_hake_2021",
+            "label": "1064"
+          }
+        }
+      },
+      {
+        "mission_id": " arctic_ocs_2021",
+        "ui": {
+          "title": "2021 Arctic OCS Single Beam Data",
+          "href": "https://www.pmel.noaa.gov/project/arctic",
+          "max_columns": 3,
+          "days_ago": 14,
+          "logos": [
+            {
+              "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
+            }
+          ]
+        },
+        "drones": {
+          "1030.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1030_arctic_2021",
+            "label": "1030"
+          },
+          "1033.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_arctic_2021",
+            "label": "1033"
+          },
+          "1034.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1034_arctic_2021",
+            "label": "1034"
+          },
+          "1067.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1067_arctic_2021",
+            "label": "1067"
+          }
+        }
+      },
+      {
+        "mission_id": "seatrial",
+        "ui": {
+          "title": "Saildrone Atlantic Hurricane Monitoring 2022 Sea-trial NRT Surface Data",
+          "href": "https://www.pmel.noaa.gov/saildrone-hurricane2021/mission_blog.html",
+          "cones_url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\"name,index\")",
+          "days_ago": 14,
+          "orgs": [
+            {
+              "org": "Pacific Marine Environmental Laboratory",
+              "url": "https://www.pmel.noaa.gov/"
+            },
+            {
+              "org": "Atlantic Oceanographic and Meteorological Laboratory",
+              "url": "https://www.aoml.noaa.gov/"
+            }
+          ]
+        },
+        "drones": {
+          "1031.0": {
+            "label": "1031",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sea_trial_daily_files_2022"
+          },
+          "1040.0": {
+            "label": "1040",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sea_trial_daily_files_2022"
+          },
+          "1083.0": {
+            "label": "1083",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sea_trial_daily_files_2022"
+          }
+        }
+      },
+      {
+        "mission_id": "seatrial_20hz",
+        "ui": {
+          "title": "Saildrone Atlantic Hurricane Monitoring 2022 Sea-trial 20hz Data",
+          "href": "https://www.pmel.noaa.gov/saildrone-hurricane2021/mission_blog.html",
+          "cones_url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\"name,index\")",
+          "days_ago": 14,
+          "orgs": [
+            {
+              "org": "Pacific Marine Environmental Laboratory",
+              "url": "https://www.pmel.noaa.gov/"
+            },
+            {
+              "org": "Atlantic Oceanographic and Meteorological Laboratory",
+              "url": "https://www.aoml.noaa.gov/"
+            }
+          ]
+        },
+        "drones": {
+          "1059.0": {
+            "label": "1059",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sea_trial_high_resolution_20hz_2022"
+          },
+          "1078.0": {
+            "label": "1078",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sea_trial_high_resolution_20hz_2022"
+          }
+        }
+      },
+      {
+        "mission_id": "seatrial_1hz",
+        "ui": {
+          "title": "Saildrone Atlantic Hurricane Monitoring 2022 Sea-trial 1hz Data",
+          "href": "https://www.pmel.noaa.gov/saildrone-hurricane2021/mission_blog.html",
+          "cones_url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\"name,index\")",
+          "days_ago": 14,
+          "orgs": [
+            {
+              "org": "Pacific Marine Environmental Laboratory",
+              "url": "https://www.pmel.noaa.gov/"
+            },
+            {
+              "org": "Atlantic Oceanographic and Meteorological Laboratory",
+              "url": "https://www.aoml.noaa.gov/"
+            }
+          ]
+        },
+        "drones": {
+          "1059.0": {
+            "label": "1059",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sea_trial_high_resolution_1hz_2022"
+          },
+          "1078.0": {
+            "label": "1078",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sea_trial_high_resolution_1hz_2022"
+          }
+        }
+      }
+    ]
+  }
+}

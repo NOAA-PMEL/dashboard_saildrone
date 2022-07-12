@@ -1,0 +1,81 @@
+{
+  "config": {
+    "header": {
+      "cones_url": "http://hazy.pmel.noaa.gov:8984/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\"name,index\")",
+      "html_title": "Saildrone Data",
+      "title": "2021 Saildrone Missions",
+      "href": "https://www.pmel.noaa.gov/",
+      "logos": [
+        {
+          "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
+        }
+      ]
+    },
+    "missions": [
+      {
+        "mission_id": "wsm",
+        "header": {
+          "html_title": "WSM Data",
+          "title": "2021 Hurricane Mission",
+          "href": "https://www.pmel.noaa.gov/saildrone-hurricane2021/mission_blog.html",
+          "cones_url": "http://hazy.pmel.noaa.gov:8984/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\"name,index\")",
+          "logos": [
+            {
+              "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
+            },
+            {
+              "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/AOML_Logo.png"
+            }
+          ]
+        },
+        "drones": {
+          "1031.0": {
+            "label": "1031",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1031_hurricane_2021"
+          },
+          "1040.0": {
+            "label": "1040",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1040_hurricane_2021"
+          },
+          "1045.0": {
+            "label": "1045",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1045_hurricane_2021"
+          },
+          "1048.0": {
+            "label": "1048",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1048_hurricane_2021"
+          },
+          "1060.0": {
+            "label": "1060",
+            "url": "https://data.pmel.noaa.gov/wsm/erddap/tabledap/sd1060_hurricane_2021"
+          }
+        }
+      },
+      {
+        "mission_id": "tpos_2021",
+        "header": {
+          "title": "2021 Tropical Pacific Observing System Mission",
+          "href": "https://www.pmel.noaa.gov/tags/tpos",
+          "logos": [
+            {
+              "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
+            }
+          ]
+        },
+        "ui": {
+          "max_columns": 1
+        },
+        "drones": {
+          "1065.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1065_tpos_2021",
+            "label": "1065"
+          },
+          "1066.0": {
+            "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_tpos_2021",
+            "label": "1066"
+          }
+        }
+      }
+    ]
+  }
+}
