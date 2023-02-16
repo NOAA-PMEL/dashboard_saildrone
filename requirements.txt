@@ -1,0 +1,9 @@
+dash-design-kit==1.6.7
+dash[celery]>=2.5
+gunicorn==20.0.4
+pandas==1.1.4
+dash_bootstrap_components
+redis
+SQLAlchemy==1.3.20
+pg8000==1.16.5
+git+https://github.com/noaaroland/sdig.git
