@@ -44,8 +44,7 @@ blank_graph.update_layout(
 dash.register_page(__name__, path="/mission", path_template='/mission/<mission_id>')
 
 def layout(mission_id=None, **params):
-    config = json.loads(constants.redis_instance.hget("saildrone", "config"))
-    mission = config['config']['missions'][mission_id]
+    mission  = json.loads(constants.redis_instance.hget("mission", mission_id))
     df = db.get_mission_locations(mission_id, mission['dsg_id'])
     
     mode = 'lines'
@@ -108,16 +107,39 @@ def layout(mission_id=None, **params):
         else:
             set_max_columns = 4
 
+    # Sort dict by value
     variable_options = []
-    for name in mission['long_names']:
-        variable_options.append({'label': mission['long_names'][name], 'value': name})
+    m_long_names = mission['long_names']
+    for var in m_long_names:
+        variable_options.append({'label':m_long_names[var], 'value': var})
 
     drone_options = []
     for drone in mission['drones']:
         drone_options.append({'label': mission['drones'][drone]['label'], 'value': drone})
 
-    
-    drone_map = px.scatter_geo(df, lat='latitude', lon='longitude', color='trajectory', fitbounds='locations')
+    logo_card = []
+    logos = []
+    if 'logo' in mission['ui']:
+        logo_img = mission['ui']['logo']
+        if not logo_img.startswith("http"):
+            logo_img = constants.assets + logo_img
+        logo = html.A(
+                html.Img(style={'max-width':'100%'},
+                    src=logo_img
+                )
+            )
+        if 'href' in mission['ui']:
+            logo.href = mission['ui']['href']
+            logo.target='_blank'
+        logos.append(logo)
+    if 'link_text' in mission['ui'] and 'href' in mission['ui']:
+        text = html.A(mission['ui']['link_text'], href = mission['ui']['href'], target='_blank')
+        logos.append(text)
+    if len(logos) > 0:
+        logo_card = ddk.Card(children=logos)
+
+    mission_title = mission['ui']['title']
+    drone_map = px.scatter_geo(df, lat='latitude', lon='longitude', color='trajectory', fitbounds='locations', hover_data=['time'])
     drone_map.update_geos(
         resolution=50,
         showcoastlines=True, coastlinecolor="Black",
@@ -153,7 +175,9 @@ def layout(mission_id=None, **params):
                             start_date=set_start_date,
                             end_date=set_end_date
                         )
-                    ])
+                    ]),
+                    ddk.Card(html.Div(mission_title, style={'fontSize': '1.5em'})),
+                    logo_card
                 ]),
                 ddk.Block(width=.4,children=[
                     ddk.Card(children=[
@@ -376,7 +400,7 @@ def set_search(drone,
 ]
 )
 def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date, selected_end_date, state_search):
-    print('setting trace data...')
+
     # Bail immediately if you don't have drones or you don't have a variable to plot
     if drone is None:
         raise exceptions.PreventUpdate
@@ -388,8 +412,6 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
     
     if len(trace_variable) == 0:
         raise exceptions.PreventUpdate
-
-    config = json.loads(constants.redis_instance.hget("saildrone", "config"))
 
     if state_search is not None:
         state_params = urllib.parse.parse_qs(state_search[1:])
@@ -403,24 +425,18 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
     check_mission_drones = []
 
     if cur_id is not None:
-        cur_mission = config['config']['missions'][cur_id]
+        cur_mission = json.loads(constants.redis_instance.hget("mission", cur_id))
         check_mission_drones = cur_mission['drones']
     if isinstance(drone, list):
         if len(check_mission_drones) > 0:
-            print('before not in list')
-            print(drone)
             drone[:] = filterfalse(lambda x: x not in check_mission_drones, drone)
-            print('after not in list')
-            print(drone)
         drones_selected = drone
     elif isinstance(drone, str):
         if len(check_mission_drones) > 0:
             if drone in check_mission_drones:
                 drones_selected = [drone]
-                print('single drone')
                 print(drones_selected)
     if len(drones_selected) > 0:
-        print('adding drones to donfig')
         trace_config['config']['drones'] = drones_selected
 
     if trace_decimation is None:
@@ -432,7 +448,6 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
             trace_config['config']['trace_variable'] = trace_variable
         else:
             trace_config['config']['trace_variable'] = [trace_variable]
-    print('setting dates')
     if selected_start_date is not None:
         if len(selected_start_date) > 0:
             if isinstance(selected_start_date, list):
@@ -446,7 +461,6 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
                 trace_config['config']['end_date'] = selected_end_date[0]
             else:
                 trace_config['config']['end_date'] = selected_end_date
-    print('dumping trace config')
     constants.redis_instance.hset("saildrone", "trace_config", json.dumps(trace_config))
     return ['go']
 
@@ -459,13 +473,10 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
     State('url', 'search')
 ], prevent_initial_call=True)
 def make_trajectory_trace(trace_config, state_search):
-    print('making trace plot')
     if trace_config is None:
         raise dash.exceptions.PreventUpdate
     elif len(trace_config) == 0:
         raise dash.exceptions.PreventUpdate
-
-    config = json.loads(constants.redis_instance.hget("saildrone", "config"))
 
     if state_search is not None:
         state_params = urllib.parse.parse_qs(state_search[1:])
@@ -508,7 +519,7 @@ def make_trajectory_trace(trace_config, state_search):
     if 'time' not in trace_variable:
         trace_variable.append('time')
 
-    the_cur_mission = config['config']['missions'][cur_mission_id]
+    the_cur_mission = json.loads(constants.redis_instance.hget("mission", cur_mission_id))
     cur_drones = the_cur_mission['drones']
     cur_long_names = the_cur_mission['long_names']
 
@@ -595,7 +606,8 @@ def make_trajectory_trace(trace_config, state_search):
                                showlakes=True, lakecolor="Blue", projection=dict(type="mercator"),
                                )
     ct = datetime.datetime.now()
-    print('At ' + str(ct) + ' plotting trajectory of ' + str(trace_variable[0]) + ' for ' + str(pdrones))
+    
+    print('At ' + str(ct) + ' plotting trajectory of ' + str(trace_variable[0]) + ' for ' + str(pdrones) + ' from ' + the_cur_mission['ui']['title'])
     return [location_trace]
 
 
@@ -627,8 +639,6 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
     if len(plot_variables) == 0:
         raise exceptions.PreventUpdate
 
-    config = json.loads(constants.redis_instance.hget("saildrone", "config"))
-
     if state_search is not None:
         state_params = urllib.parse.parse_qs(state_search[1:])
         
@@ -648,7 +658,7 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
     check_mission_drones = []
 
     if cur_id is not None:
-        cur_mission = config['config']['missions'][cur_id]
+        cur_mission = json.loads(constants.redis_instance.hget("mission", cur_id))
         check_mission_drones = cur_mission['drones']
     if isinstance(drone, list):
         if len(check_mission_drones) > 0:
@@ -706,7 +716,7 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
     State('url', 'search')
 ], prevent_initial_call=True)
 def make_plots(trigger, state_search):
-    config = json.loads(constants.redis_instance.hget("saildrone", "config"))
+    
     if state_search is not None:
         state_params = urllib.parse.parse_qs(state_search[1:])
     
@@ -748,7 +758,7 @@ def make_plots(trigger, state_search):
     if 'plots_per' in plots_config['config']:
         plots_per = plots_config['config']['plots_per']
 
-    the_mission_config = config['config']['missions'][cur_mission_id]
+    the_mission_config = json.loads(constants.redis_instance.hget("mission", cur_mission_id))
     cur_drones = the_mission_config['drones']
     # the next thing
     cur_long_names = the_mission_config['long_names']
@@ -942,5 +952,6 @@ def make_plots(trigger, state_search):
     # plots.update_layout(plot_bgcolor=plot_bg)
     plots.update_traces(showlegend=False)
     ct = datetime.datetime.now()
-    print('At ' + str(ct) + ' plotting timeseries of ' + str(colnames) + ' for ' + str(tsdrones))
+
+    print('At ' + str(ct) + ' plotting timeseries of ' + str(colnames) + ' for ' + str(tsdrones) + ' from ' + the_mission_config['ui']['title'])
     return [plots]
