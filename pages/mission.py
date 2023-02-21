@@ -123,8 +123,11 @@ def layout(mission_id=None, **params):
         logo_img = mission['ui']['logo']
         if not logo_img.startswith("http"):
             logo_img = constants.assets + logo_img
+        style = {'max-width':'100%'}
+        if 'logo_bgcolor' in mission['ui']:
+            style['background-color'] = mission['ui']['logo_bgcolor']
         logo = html.A(
-                html.Img(style={'max-width':'100%'},
+                html.Img(style=style,
                     src=logo_img
                 )
             )
@@ -136,7 +139,7 @@ def layout(mission_id=None, **params):
         text = html.A(mission['ui']['link_text'], href = mission['ui']['href'], target='_blank')
         logos.append(text)
     if len(logos) > 0:
-        logo_card = ddk.Card(children=logos)
+        logo_card = ddk.Card(children=logos,)
 
     mission_title = mission['ui']['title']
     drone_map = px.scatter_geo(df, lat='latitude', lon='longitude', color='trajectory', fitbounds='locations', hover_data=['time'])
