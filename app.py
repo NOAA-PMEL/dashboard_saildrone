@@ -8,7 +8,7 @@ import dateutil
 import constants
 from sdig.erddap.info import Info
 
-version = 'v2.0'
+version = 'v2.1'
 
 config_json = None
 with open('config/missions.json') as missions_config:
