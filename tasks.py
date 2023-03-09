@@ -16,6 +16,17 @@ import db
 
 logger = get_task_logger(__name__)
 
+celery_app = Celery('tasks', broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(
+         crontab(hour='1'),
+         update_locations.s(),
+         name='Update the locations database'
+    )
+
+@celery_app.task
 def update_locations():
     with open('config/missions.json') as missions_config:
         config_json = json.load(missions_config)
