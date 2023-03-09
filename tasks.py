@@ -21,7 +21,7 @@ celery_app = Celery('tasks', broker=os.environ.get("REDIS_URL", "redis://127.0.0
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-         crontab(hour='1'),
+         crontab(minute='32'),
          update_locations.s(),
          name='Update the locations database'
     )
