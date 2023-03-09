@@ -12,7 +12,7 @@ import pandas as pd
 from plotly.subplots import make_subplots
 import datetime
 import numpy as np
-import zc
+import sdig.util.zc as zc
 
 height_of_row = 345
 short_map_height = 450

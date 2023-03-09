@@ -8,7 +8,7 @@ import json
 import redis
 import pandas as pd
 import db
-import zc
+import sdig.util.zc as zc
 import constants
 
 dash.register_page(__name__, path='/', )
