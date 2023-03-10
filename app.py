@@ -55,7 +55,7 @@ app.layout = ddk.App([
                 ), href='https://www.pmel.noaa.gov/'
             ),
             dcc.Link(
-                ddk.Title('Saildone Missions'),
+                ddk.Title('Saildrone Missions'),
                 href=constants.base
             ),
             ddk.Menu(children=menu),
