@@ -1,432 +1,433 @@
 {
-    "config": {
-        "ui": {
-        "days_ago": 7,
-        "cones_url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/osmc_cones.csv?latitude,longitude,name,index,time&orderBy(\"name,index\")",
-        "html_title": "Saildrone Data",
-        "title": "2021 Saildrone Missions",
-        "href": "https://www.pmel.noaa.gov/",
-        "max_columns": 3,
-        "logos": [
-            {
-            "logo": "https://www.pmel.noaa.gov/saildrone-hurricane2021/images/PMEL_logo.png"
-            }
-        ]
-        },
-        "collections":{
-            "saildrone_2017": {
-                "title": "2017 Saildrone Missions",
-                "missions": {
-                    "2017_1_tpos": {
-                        "ui": {
-                            "title": "2017 Saildrone PMEL TPOS Mission",
-                            "href": "https://www.pmel.noaa.gov/ocs/saildrone",
-                            "logo": "OCS-logo.png",
-                            "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1005.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1005_2017",
-                                "label": "1005"
-                            },
-                            "1006.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1006_2017",
-                                "label": "1006"
-                            }
-                        }
-                    }   
-                }
-            },
-            "saildrone_2018": {
-                "title": "2018 Saildrone Missions",
-                "missions": {
-                    "2018_1_arctic": {
-                        "ui": {
-                            "title": "2018 Saildrone Arctic Mission",
-                            "href": "https://www.pmel.noaa.gov/arctic/",
-                            "logo": "NOAA-Arctic_w_Emblem.png",
-                            "logo_bgcolor": "#5E819D",
-                            "link_text": "PMEL Arctic Zone",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1020.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
-                                "label": "1020"
-                            },
-                            "1021.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
-                                "label": "1021"
-                            },
-                            "1022.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
-                                "label": "1022"
-                            },
-                            "1023.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
-                                "label": "1023"
-                            }
-                        }
+"collections":{
+    "saildrone_2017": {
+        "title": "2017 Saildrone Missions",
+        "missions": {
+            "2017_1_tpos": {
+                "active": "false",
+                "ui": {
+                    "title": "2017 Saildrone PMEL TPOS Mission",
+                    "href": "https://www.pmel.noaa.gov/ocs/saildrone",
+                    "logo": "OCS-logo.png",
+                    "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1005.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1005_2017",
+                        "label": "1005"
                     },
-                    "2018_2_tpos": {
-                        "ui": {
-                            "title": "2018 TPOS Mission",
-                            "href": "https://www.pmel.noaa.gov/ocs/saildrone",
-                            "logo": "OCS-logo.png",
-                            "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1005.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1005_2018",
-                                "label": "1005"
-                            },
-                            "1006.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1006_2018",
-                                "label": "1006"
-                            },
-                            "1029.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1029_2018",
-                                "label": "1029"
-                            },
-                            "1030.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1030_2018",
-                                "label": "1030"
-                            }
-                        }
-                    },
-                    "2018_3_west_coast": {
-                        "ui":{
-                            "title": "2018 West Coast Survey",
-                            "href": "https://www.fisheries.noaa.gov/region/west-coast#northwest-science",
-                            "logo": "NOAA_FISHERIES_logoH.png",
-                            "link_text": "Northwest Fisheries Science Center, West Coast Survey",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1024.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
-                                "label": "1024"
-                            },
-                            "1025.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
-                                "label": "1025"
-                            },
-                            "1026.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
-                                "label": "1026"
-                            },
-                            "1027.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
-                                "label": "1027"
-                            },
-                            "1028.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
-                                "label": "1028"
-                            }
-                        }
+                    "1006.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1006_2017",
+                        "label": "1006"
                     }
                 }
-            },
-            "saildrone_2019": {
-                "title": "2019 Saildrone Missions",
-                "missions": {
-                    "2019_1_arctic": {
-                        "ui": {
-                            "title": "2019 Saildrone Arctic Mission",
-                            "href": "https://www.pmel.noaa.gov/arctic/",
-                            "logo": "NOAA-Arctic_w_Emblem.png",
-                            "logo_bgcolor": "#5E819D",
-                            "link_text": "PMEL Arctic Zone",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1033.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_2019",
-                                "label": "1033"
-                            },
-                            "1034.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1034_2019",
-                                "label": "1034"
-                            },
-                            "1035.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1035_2019",
-                                "label": "1035"
-                            },
-                            "1036.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1036_2019",
-                                "label": "1036"
-                            },
-                            "1037.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1037_2019",
-                                "label": "1037"
-                            },
-                            "1041.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1041_2019",
-                                "label": "1041"
-                            }
-                        }
-                    },
-                    "2019_2_tpos": {
-                        "ui": {
-                            "title": "2019 TPOS Mission",
-                            "href": "https://www.pmel.noaa.gov/ocs/saildrone",
-                            "logo": "OCS-logo.png",
-                            "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1066.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_2019",
-                                "label": "1066"
-                            },
-                            "1067.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1067_2019",
-                                "label": "1067"
-                            },
-                            "1068.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1068_2019",
-                                "label": "1068"
-                            },
-                            "1069.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1069_2019",
-                                "label": "1069"
-                            }
-                        }
-                    },
-                    "2019_3_west_coast": {
-                        "ui":{
-                            "title": "2019 West Coast Survey",
-                            "href": "https://www.fisheries.noaa.gov/region/west-coast#northwest-science",
-                            "logo": "NOAA_FISHERIES_logoH.png",
-                            "link_text": "Northwest Fisheries Science Center, West Coast Survey",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1038.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1038"
-                            },
-                            "1039.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1039"
-                            },
-                            "1040.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1040"
-                            },
-                            "1043.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1043"
-                            },
-                            "1044.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1044"
-                            },
-                            "1045.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1045"
-                            },
-                            "1046.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1044"
-                            },
-                            "1047.0": {
-                                "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
-                                "label": "1047"
-                            }
-                        }
-                    }
-                }
-            },
-            "saildrone_2020":{
-                "title": "2020 Saildrone Missions",
-                "missions": {
-                    "2020_1_arctic_ocs": {
-                        "ui": {
-                            "title": "2020 Arctic OCS Single Beam Mapping",
-                            "href": "https://nauticalcharts.noaa.gov/",
-                            "link_text": "U.S. Office of Coastal Survey",
-                            "max_columns": 3,
-                            "logo": "ChartsProducts.png"
-                        },
-                        "drones": {
-                            "1037.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1037",
-                                "label": "1037"
-                            },
-                            "1055.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1055",
-                                "label": "1055"
-                            },
-                            "1068.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1068",
-                                "label": "1068"
-                            },
-                            "1069.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1069",
-                                "label": "1037"
-                            }
-                        }
-                    },
-                    "2020_2_afsc_pollock": {
-                        "ui": {
-                            "title": "2020 Alaska Fisheries Science Center Pollock Survey",
-                            "href": "https://www.fisheries.noaa.gov/feature-story/pollock-survey-begins-eastern-bering-sea",
-                            "max_columns": 3,
-                            "days_ago": 14,
-                            "logo": "NOAA_FISHERIES_logoH.png"
-                        },
-                        "drones": {
-                            "1043.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1043",
-                                "label": "1043"
-                            },
-                            "1046.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1046",
-                                "label": "1046"
-                            },
-                            "1049.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1049",
-                                "label": "1049"
-                            }
-                        }
-                    }
-                }
-            },
-            "saildrone_2021":{
-                "title": "2021 Saildrone Missions",
-                "missions": {
-                    "2021_5_tpos": {
-                        "ui": {
-                            "title": "2021 Tropical Pacific Observing System Mission",
-                            "href": "https://www.pmel.noaa.gov/ocs/saildrone",
-                            "logo": "OCS-logo.png",
-                            "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1065.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1065_tpos_2021",
-                                "label": "1065"
-                            },
-                            "1066.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_tpos_2021",
-                                "label": "1066"
-                            }
-                        }
-                    },
-                    "2021_4_swfsc_nrt": {
-                        "ui": {
-                            "title": "2021 NOAA SWFSC NRT Mission",
-                            "href": "https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center",
-                            "max_columns": 3,
-                            "days_ago": 14,
-                            "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
-                        },
-                        "drones": {
-                            "1055.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1055_swfsc_2021",
-                                "label": "1055"
-                            },
-                            "1059.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1059_swfsc_2021",
-                                "label": "1059"
-                            }
-                        }
-                    },
-                    "2021_3_nwfsc_hake": {
-                        "ui": {
-                            "title": "2021 NOAA NWFSC Hake Survey Mission",
-                            "href": "https://www.fisheries.noaa.gov/about/northwest-fisheries-science-center",
-                            "max_columns": 3,
-                            "days_ago": 14,
-                            "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
-                        },
-                        "drones": {
-                            "1063.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1063_hake_2021",
-                                "label": "1063"
-                            },
-                            "1064.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1064_hake_2021",
-                                "label": "1064"
-                            }
-                        }
-                    },
-                    "2021_2_arctic_ocs": {
-                        "ui": {
-                            "title": "2021 Arctic OCS Single Beam Data",
-                            "href": "https://www.pmel.noaa.gov/project/arctic",
-                            "max_columns": 3,
-                            "days_ago": 14,
-                           "logo": "ChartsProducts.png"
-                        },
-                        "drones": {
-                            "1030.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1030_arctic_2021",
-                                "label": "1030"
-                            },
-                            "1033.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_arctic_2021",
-                                "label": "1033"
-                            },
-                            "1034.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1034_arctic_2021",
-                                "label": "1034"
-                            },
-                            "1067.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1067_arctic_2021",
-                                "label": "1067"
-                            }
-                        }
-                    }
-                }
-            },
-            "saildrone_2022":{
-                "title": "2022 Saildrone Missions",
-                "missions": {
-                    "2022_5_tpos": {
-                        "ui": {
-                            "title": "2022 Tropical Pacific Observing System Mission",
-                            "href": "https://www.pmel.noaa.gov/ocs/saildrone",
-                            "logo": "OCS-logo.png",
-                            "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
-                            "max_columns": 1
-                        },
-                        "drones": {
-                            "1033.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_tpos_2022",
-                                "label": "1033"
-                            },
-                            "1052.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1052_tpos_2022",
-                                "label": "1052"
-                            }
-                        }
-                    },
-                    "2022_4_swfsc_nrt": {
-                        "ui": {
-                            "title": "2022 NOAA SWFSC NRT Mission",
-                            "href": "https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center",
-                            "max_columns": 3,
-                            "days_ago": 14,
-                            "logo": "NOAA_FISHERIES_logoH.png"
-                        },
-                        "drones": {
-                            "1076.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1076_swfsc_2022",
-                                "label": "1076"
-                            },
-                            "1077.0": {
-                                "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1077_swfsc_2022",
-                                "label": "1077"
-                            }
-                        }
-                    }
-                }
-            }         
+            }   
         }
-    }
+    },
+    "saildrone_2018": {
+        "title": "2018 Saildrone Missions",
+        "missions": {
+            "2018_1_arctic": {
+                "active": "false",
+                "ui": {
+                    "title": "2018 Saildrone Arctic Mission",
+                    "href": "https://www.pmel.noaa.gov/arctic/",
+                    "logo": "NOAA-Arctic_w_Emblem.png",
+                    "logo_bgcolor": "#5E819D",
+                    "link_text": "PMEL Arctic Zone",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1020.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
+                        "label": "1020"
+                    },
+                    "1021.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
+                        "label": "1021"
+                    },
+                    "1022.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
+                        "label": "1022"
+                    },
+                    "1023.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_arctic_2018",
+                        "label": "1023"
+                    }
+                }
+            },
+            "2018_2_tpos": {
+                "active": "false",
+                "ui": {
+                    "title": "2018 TPOS Mission",
+                    "href": "https://www.pmel.noaa.gov/ocs/saildrone",
+                    "logo": "OCS-logo.png",
+                    "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1005.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1005_2018",
+                        "label": "1005"
+                    },
+                    "1006.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1006_2018",
+                        "label": "1006"
+                    },
+                    "1029.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1029_2018",
+                        "label": "1029"
+                    },
+                    "1030.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1030_2018",
+                        "label": "1030"
+                    }
+                }
+            },
+            "2018_3_west_coast": {
+                "active": "false",
+                "ui":{
+                    "title": "2018 West Coast Survey",
+                    "href": "https://www.fisheries.noaa.gov/region/west-coast#northwest-science",
+                    "logo": "NOAA_FISHERIES_logoH.png",
+                    "link_text": "Northwest Fisheries Science Center, West Coast Survey",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1024.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
+                        "label": "1024"
+                    },
+                    "1025.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
+                        "label": "1025"
+                    },
+                    "1026.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
+                        "label": "1026"
+                    },
+                    "1027.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
+                        "label": "1027"
+                    },
+                    "1028.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2018",
+                        "label": "1028"
+                    }
+                }
+            }
+        }
+    },
+    "saildrone_2019": {
+        "title": "2019 Saildrone Missions",
+        "missions": {
+            "2019_1_arctic": {
+                "active": "false",
+                "ui": {
+                    "title": "2019 Saildrone Arctic Mission",
+                    "href": "https://www.pmel.noaa.gov/arctic/",
+                    "logo": "NOAA-Arctic_w_Emblem.png",
+                    "logo_bgcolor": "#5E819D",
+                    "link_text": "PMEL Arctic Zone",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1033.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_2019",
+                        "label": "1033"
+                    },
+                    "1034.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1034_2019",
+                        "label": "1034"
+                    },
+                    "1035.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1035_2019",
+                        "label": "1035"
+                    },
+                    "1036.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1036_2019",
+                        "label": "1036"
+                    },
+                    "1037.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1037_2019",
+                        "label": "1037"
+                    },
+                    "1041.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1041_2019",
+                        "label": "1041"
+                    }
+                }
+            },
+            "2019_2_tpos": {
+                "active": "false",
+                "ui": {
+                    "title": "2019 TPOS Mission",
+                    "href": "https://www.pmel.noaa.gov/ocs/saildrone",
+                    "logo": "OCS-logo.png",
+                    "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1066.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_2019",
+                        "label": "1066"
+                    },
+                    "1067.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1067_2019",
+                        "label": "1067"
+                    },
+                    "1068.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1068_2019",
+                        "label": "1068"
+                    },
+                    "1069.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1069_2019",
+                        "label": "1069"
+                    }
+                }
+            },
+            "2019_3_west_coast": {
+                "active": "false",
+                "ui":{
+                    "title": "2019 West Coast Survey",
+                    "href": "https://www.fisheries.noaa.gov/region/west-coast#northwest-science",
+                    "logo": "NOAA_FISHERIES_logoH.png",
+                    "link_text": "Northwest Fisheries Science Center, West Coast Survey",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1038.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1038"
+                    },
+                    "1039.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1039"
+                    },
+                    "1040.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1040"
+                    },
+                    "1043.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1043"
+                    },
+                    "1044.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1044"
+                    },
+                    "1045.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1045"
+                    },
+                    "1046.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1044"
+                    },
+                    "1047.0": {
+                        "url":"https://data.pmel.noaa.gov/pmel/erddap/tabledap/saildrone_west_coast_survey_2019",
+                        "label": "1047"
+                    }
+                }
+            }
+        }
+    },
+    "saildrone_2020":{
+        "title": "2020 Saildrone Missions",
+        "missions": {
+            "2020_1_arctic_ocs": {
+                "active": "false",
+                "ui": {
+                    "title": "2020 Arctic OCS Single Beam Mapping",
+                    "href": "https://nauticalcharts.noaa.gov/",
+                    "link_text": "U.S. Office of Coastal Survey",
+                    "max_columns": 3,
+                    "logo": "ChartsProducts.png"
+                },
+                "drones": {
+                    "1037.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1037",
+                        "label": "1037"
+                    },
+                    "1055.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1055",
+                        "label": "1055"
+                    },
+                    "1068.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1068",
+                        "label": "1068"
+                    },
+                    "1069.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1069",
+                        "label": "1037"
+                    }
+                }
+            },
+            "2020_2_afsc_pollock": {
+                "active": "false",
+                "ui": {
+                    "title": "2020 Alaska Fisheries Science Center Pollock Survey",
+                    "href": "https://www.fisheries.noaa.gov/feature-story/pollock-survey-begins-eastern-bering-sea",
+                    "max_columns": 3,
+                    "days_ago": 14,
+                    "logo": "NOAA_FISHERIES_logoH.png"
+                },
+                "drones": {
+                    "1043.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1043",
+                        "label": "1043"
+                    },
+                    "1046.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1046",
+                        "label": "1046"
+                    },
+                    "1049.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1049",
+                        "label": "1049"
+                    }
+                }
+            }
+        }
+    },
+    "saildrone_2021":{
+        "title": "2021 Saildrone Missions",
+        "missions": {
+            "2021_5_tpos": {
+                "active": "false",
+                "ui": {
+                    "title": "2021 Tropical Pacific Observing System Mission",
+                    "href": "https://www.pmel.noaa.gov/ocs/saildrone",
+                    "logo": "OCS-logo.png",
+                    "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1065.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1065_tpos_2021",
+                        "label": "1065"
+                    },
+                    "1066.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_tpos_2021",
+                        "label": "1066"
+                    }
+                }
+            },
+            "2021_4_swfsc_nrt": {
+                "active": "false",
+                "ui": {
+                    "title": "2021 NOAA SWFSC NRT Mission",
+                    "href": "https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center",
+                    "max_columns": 3,
+                    "days_ago": 14,
+                    "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
+                },
+                "drones": {
+                    "1055.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1055_swfsc_2021",
+                        "label": "1055"
+                    },
+                    "1059.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1059_swfsc_2021",
+                        "label": "1059"
+                    }
+                }
+            },
+            "2021_3_nwfsc_hake": {
+                "active": "false",
+                "ui": {
+                    "title": "2021 NOAA NWFSC Hake Survey Mission",
+                    "href": "https://www.fisheries.noaa.gov/about/northwest-fisheries-science-center",
+                    "max_columns": 3,
+                    "days_ago": 14,
+                    "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
+                },
+                "drones": {
+                    "1063.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1063_hake_2021",
+                        "label": "1063"
+                    },
+                    "1064.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1064_hake_2021",
+                        "label": "1064"
+                    }
+                }
+            },
+            "2021_2_arctic_ocs": {
+                "active": "false",
+                "ui": {
+                    "title": "2021 Arctic OCS Single Beam Data",
+                    "href": "https://www.pmel.noaa.gov/project/arctic",
+                    "max_columns": 3,
+                    "days_ago": 14,
+                    "logo": "ChartsProducts.png"
+                },
+                "drones": {
+                    "1030.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1030_arctic_2021",
+                        "label": "1030"
+                    },
+                    "1033.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_arctic_2021",
+                        "label": "1033"
+                    },
+                    "1034.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1034_arctic_2021",
+                        "label": "1034"
+                    },
+                    "1067.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1067_arctic_2021",
+                        "label": "1067"
+                    }
+                }
+            }
+        }
+    },
+    "saildrone_2022":{
+        "title": "2022 Saildrone Missions",
+        "missions": {
+            "2022_5_tpos": {
+                "active": "false",
+                "ui": {
+                    "title": "2022 Tropical Pacific Observing System Mission",
+                    "href": "https://www.pmel.noaa.gov/ocs/saildrone",
+                    "logo": "OCS-logo.png",
+                    "link_text": "The PMEL Ocean Climage Stations, Tropical Pacific Observing System Saildrone Mission",
+                    "max_columns": 1
+                },
+                "drones": {
+                    "1033.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_tpos_2022",
+                        "label": "1033"
+                    },
+                    "1052.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1052_tpos_2022",
+                        "label": "1052"
+                    }
+                }
+            },
+            "2022_4_swfsc_nrt": {
+                "active": "false",
+                "ui": {
+                    "title": "2022 NOAA SWFSC NRT Mission",
+                    "href": "https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center",
+                    "max_columns": 3,
+                    "days_ago": 14,
+                    "logo": "NOAA_FISHERIES_logoH.png"
+                },
+                "drones": {
+                    "1076.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1076_swfsc_2022",
+                        "label": "1076"
+                    },
+                    "1077.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1077_swfsc_2022",
+                        "label": "1077"
+                    }
+                }
+            }
+        }
+    }         
+}
+
 }

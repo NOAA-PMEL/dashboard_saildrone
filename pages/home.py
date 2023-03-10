@@ -12,7 +12,6 @@ import sdig.util.zc as zc
 import constants
 
 dash.register_page(__name__, path='/', )
-config = json.loads(constants.redis_instance.hget("saildrone", "config"))
 
 def layout():
 
