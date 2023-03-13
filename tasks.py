@@ -6,6 +6,7 @@ import json
 from celery import Celery
 from celery.schedules import crontab
 from sdig.erddap.info import Info
+import urllib.parse
 
 from celery.utils.log import get_task_logger
 
@@ -41,13 +42,19 @@ def update_mission(mid, mission):
     units = {}
     dsg_ids = []
     drones = mission['drones']
+    mission_dfs = []
     for d in drones:
         logger.debug('Reading drone ' + str(d))
         drone = drones[d]
         info = Info(drone['url']) 
         depth_name, dsg_var = info.get_dsg_info()
         dsg_id = dsg_var[info.get_dsg_type()]
-        url = drone['url'] + '.csv?latitude,longitude,time,' + dsg_id +'&orderByClosest("time,1day")&'+dsg_id+'="'+d+'"'
+        base_url = drone['url'] + '.csv?'
+        req_vars = 'latitude,longitude,time,' + dsg_id
+        query = '&orderByClosest("time,1day")&'+dsg_id+'="'+d+'"'
+        q = urllib.parse.quote(query)
+        url = base_url + req_vars + q
+        print(url)
         df = pd.read_csv(url, skiprows=[1])
         # Don't drop, just take the rows where lat or lon is not NA:
         df = df[df['latitude'].notna()]
@@ -62,6 +69,7 @@ def update_mission(mid, mission):
         dsg_ids.append(dsg_id['trajectory'])
         long_names = {**long_names, **d_long_names}
         units = {**units, **d_units}
+        mission_dfs.append(df)
     uids = list(set(dsg_ids))
     if len(uids) == 1:
         mission['dsg_id'] = uids[0]
@@ -71,18 +79,18 @@ def update_mission(mid, mission):
     mission['long_names'] = long_names
     mission['units'] = units
     constants.redis_instance.hset("mission", mid, json.dumps(mission)) 
-
-    return df
+    full_df = pd.concat(mission_dfs).reset_index()
+    return full_df
 
 # Run this once from the workspace before deploying the application
 def load_missions():
     with open('config/missions.json') as missions_config:
         config_json = json.load(missions_config)
     collections = config_json['collections']
-    outeridx = 0
+    outeridx = 0 
     for collection in collections:
         logger.info('Processing missions for ' + collection)
-        member = collections[collection]      
+        member = collections[collection]     
         for idx, mid in enumerate(member['missions']):
             mission = member['missions'][mid]
             df = update_mission(mid, mission)
@@ -115,11 +123,14 @@ def update_active_missions():
                     new_locations_df = df
                 else:
                     new_locations_df = pd.concat([new_locations_df, df])
-                outeridx = outeridx + 1
-
-    # replace the locations for any mission in the locations_df with the values from new_locations_df
-    cols = list(locations_df.columns) 
-    locations_df.loc[locations_df.mission_id.isin(new_locations_df.mission_id), cols] = new_locations_df[cols]
+                outeridx = outeridx + 1       
+                if mid in locations_df['mission_id'].values:
+                    # if there are already entries with this mission, replace the locations for the mission in the locations_df with the values from new_locations_df
+                    cols = list(locations_df.columns) 
+                    locations_df.loc[locations_df.mission_id.isin(new_locations_df.mission_id), cols] = new_locations_df[cols]
+                else:
+                    # if there are no such entries, concat the new locations
+                    locations_df = pd.concat([locations_df, new_locations_df])
 
     logger.info('Updating locations of active missions...')
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)

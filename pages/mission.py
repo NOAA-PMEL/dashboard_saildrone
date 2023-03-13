@@ -44,6 +44,8 @@ blank_graph.update_layout(
 dash.register_page(__name__, path="/mission", path_template='/mission/<mission_id>')
 
 def layout(mission_id=None, **params):
+    if mission_id is None:
+        return html.Div('')
     mission  = json.loads(constants.redis_instance.hget("mission", mission_id))
     df = db.get_mission_locations(mission_id, mission['dsg_id'])
     
@@ -536,7 +538,7 @@ def make_trajectory_trace(trace_config, state_search):
 
     order_by = '&orderBy("time")'
     if trace_decimation > 0:
-        order_by = '&orderByClosest(%22time/' + str(trace_decimation) + 'hours%22)'
+        order_by = '&orderByClosest("time/' + str(trace_decimation) + 'hours")'
     if trace_start_date is not None:
         order_by = order_by + '&time>=' + trace_start_date
     #if trace_end_date is not None and 'seatrial' not in cur_mission_id:
@@ -546,12 +548,16 @@ def make_trajectory_trace(trace_config, state_search):
         order_by = order_by + '&time<=' + trace_end_date
     data_tables = []
     for drone_id in pdrones:
-        drone_url = cur_drones[drone_id]['url'] + '.csv?' + req_var + order_by + '&trajectory="' + drone_id + '"'
+        base_url = cur_drones[drone_id]['url'] + '.csv?'
+        traj_query = '&trajectory="' + drone_id + '"' + order_by
+        encoded_query = urllib.parse.quote(traj_query, safe='&()=:/')
+        tr_drone_url = base_url + req_var + encoded_query
         try:
-            d_df = pd.read_csv(drone_url, skiprows=[1])
+            d_df = pd.read_csv(tr_drone_url, skiprows=[1])
             data_tables.append(d_df)
-        except:
-            print('exception getting data from ' + drone_url)
+        except Exception as ex:
+            print('Trajectory plot: exception getting data from ' + tr_drone_url)
+            print('e=' + ex)
             continue
 
     if len(data_tables) == 0:
@@ -777,7 +783,7 @@ def make_plots(trigger, state_search):
 
     order_by = '&orderBy("time")'
     if plots_decimation > 0:
-        order_by = '&orderByClosest(%22time/' + str(plots_decimation) + 'hours%22)'
+        order_by = '&orderByClosest("time/' + str(plots_decimation) + 'hours")'
     # hack for now because there's only one day
     if plots_start_date is not None:
         order_by = order_by + '&time>=' + plots_start_date
@@ -794,14 +800,16 @@ def make_plots(trigger, state_search):
             if plot_var not in cur_drones[d_ts]['variables']:
                 drone_plot_variables.remove(plot_var)
         req_var = ",".join(drone_plot_variables)
-        drone_url = cur_drones[d_ts]['url'] + '.csv?' + req_var + order_by + '&trajectory="' + d_ts + '"'
+        url_base = cur_drones[d_ts]['url'] + '.csv?'
+        query = '&trajectory="' + d_ts + '"' + order_by
+        q = urllib.parse.quote(query, safe='&()=:/')
+        drone_url = url_base + req_var + q
         try:
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
-            # ts_df = pd.read_csv(drone_url, skiprows=[1])
             plot_data_tables.append(ts_df)
         except Exception as e:
+            print('Timeseries plots: exception getting data from ' + drone_url)
             print('e=', e)
-            print('exception getting data from ' + drone_url)
             continue
     if len(plot_data_tables) == 0:
         return [no_data_graph]

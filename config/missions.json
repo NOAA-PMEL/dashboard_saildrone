@@ -293,7 +293,7 @@
     "saildrone_2021":{
         "title": "2021 Saildrone Missions",
         "missions": {
-            "2021_5_tpos": {
+            "2021_6_tpos": {
                 "active": "false",
                 "ui": {
                     "title": "2021 Tropical Pacific Observing System Mission",
@@ -313,7 +313,7 @@
                     }
                 }
             },
-            "2021_4_swfsc_nrt": {
+            "2021_5_swfsc_nrt": {
                 "active": "false",
                 "ui": {
                     "title": "2021 NOAA SWFSC NRT Mission",
@@ -333,7 +333,7 @@
                     }
                 }
             },
-            "2021_3_nwfsc_hake": {
+            "2021_4_nwfsc_hake": {
                 "active": "false",
                 "ui": {
                     "title": "2021 NOAA NWFSC Hake Survey Mission",
@@ -380,12 +380,82 @@
                         "label": "1067"
                     }
                 }
+            },
+            "2021_3_atlantic_hurricane": {
+                "active": "false",
+                "ui": {
+                    "title": "2021 Atlantic Hurricane",
+                    "href": "https://www.pmel.noaa.gov/saildrone-hurricane2021/index.html",
+                    "max_columns": "3",
+                    "logo": "AOML_PMEL.png"
+                },
+                "drones": {
+                    "1031.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1031_hurricane_2021",
+                        "label": "1031"
+                    },
+                    "1040.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1040_hurricane_2021",
+                        "label": "1040"
+                    },
+                    "1045.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1045_hurricane_2021",
+                        "label": "1045"
+                    },
+                    "1048.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1048_hurricane_2021",
+                        "label": "1048"
+                    },
+                    "1060.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1060_hurricane_2021",
+                        "label": "1060"
+                    }
+                }
             }
         }
     },
     "saildrone_2022":{
         "title": "2022 Saildrone Missions",
         "missions": {
+            "2022_1_atlantic_hurricane": {
+                "active": "true",
+                "ui": {
+                    "title": "2022 Atlantic Hurricane",
+                    "href": "https://www.pmel.noaa.gov/saildrone-hurricane/2022/index.html",
+                    "max_columns": "3",
+                    "logo": "AOML_PMEL.png"
+                },
+                "drones":{
+                    "1031.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1031_hurricane_2022",
+                        "label": "1031"
+                    },
+                    "1032.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1032_hurricane_2022",
+                        "label": "1032"
+                    },
+                    "1040.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1040_hurricane_2022",
+                        "label": "1040"
+                    },
+                    "1059.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1059_hurricane_2022",
+                        "label": "1059"
+                    },
+                    "1078.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1078_hurricane_2022",
+                        "label": "1078"
+                    },
+                    "1083.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1083_hurricane_2022",
+                        "label": "1083"
+                    },
+                    "1084.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1084_hurricane_2022",
+                        "label": "1084"
+                    }  
+                }
+            },
             "2022_5_tpos": {
                 "active": "false",
                 "ui": {
