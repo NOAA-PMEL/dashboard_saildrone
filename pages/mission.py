@@ -142,9 +142,9 @@ def layout(mission_id=None, **params):
         logos.append(text)
     if len(logos) > 0:
         logo_card = ddk.Card(children=logos,)
-
+    df.sort_values(['trajectory', 'time'], inplace=True)
     mission_title = mission['ui']['title']
-    drone_map = px.scatter_geo(df, lat='latitude', lon='longitude', color='trajectory', fitbounds='locations', hover_data=['time'])
+    drone_map = px.scatter_geo(df, lat='latitude', lon='longitude', color='trajectory', fitbounds='locations', hover_data=['time'], color_discrete_sequence=px.colors.qualitative.Dark24)
     drone_map.update_geos(
         resolution=50,
         showcoastlines=True, coastlinecolor="Black",
