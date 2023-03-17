@@ -418,7 +418,7 @@
         "title": "2022 Saildrone Missions",
         "missions": {
             "2022_1_atlantic_hurricane": {
-                "active": "true",
+                "active": "false",
                 "ui": {
                     "title": "2022 Atlantic Hurricane",
                     "href": "https://www.pmel.noaa.gov/saildrone-hurricane/2022/index.html",
