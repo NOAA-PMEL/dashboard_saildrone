@@ -20,26 +20,28 @@ tall_map_height = 800
 
 line_rgb = 'rgba(.04,.04,.04,.05)'
 plot_bg = 'rgba(1.0, 1.0, 1.0 ,1.0)'
-blank_graph = go.Figure(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
-blank_graph.add_trace(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
-blank_graph.update_traces(visible=False)
-blank_graph.update_layout(
-    xaxis={"visible": False},
-    yaxis={"visible": False},
-    title='Make selections...',
-    plot_bgcolor=plot_bg,
-    annotations=[
-        {
-            "text": "Pick one or more drones<br>Pick a variable",
-            "xref": "paper",
-            "yref": "paper",
-            "showarrow": False,
-            "font": {
-                "size": 14
-            }
-        },
-    ]
-)
+
+def get_blank(message):
+    blank_graph = go.Figure(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
+    blank_graph.add_trace(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
+    blank_graph.update_traces(visible=False)
+    blank_graph.update_layout(
+        xaxis={"visible": False},
+        yaxis={"visible": False},
+        annotations=[
+            {
+                "text": message,
+                "xref": "paper",
+                "yref": "paper",
+                "showarrow": False,
+                "font": {
+                    "size": 14
+                }
+            },
+        ]
+    )
+    return blank_graph
+blank_graph = get_blank('Pick one or more drones<br>Pick a variable')
 
 dash.register_page(__name__, path="/mission", path_template='/mission/<mission_id>')
 
@@ -440,7 +442,6 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
         if len(check_mission_drones) > 0:
             if drone in check_mission_drones:
                 drones_selected = [drone]
-                print(drones_selected)
     if len(drones_selected) > 0:
         trace_config['config']['drones'] = drones_selected
 
@@ -561,12 +562,12 @@ def make_trajectory_trace(trace_config, state_search):
             continue
 
     if len(data_tables) == 0:
-        return [no_data_graph]
+        return [get_blank('No data for this combination of selections.')]
 
     df = pd.concat(data_tables)
 
     if df.shape[0] < 3:
-        return [no_data_graph]
+        return [get_blank('No data available for this combination of selections.')]
 
     df = df[df[trace_variable[0]].notna()]
     df.loc[:, 'text_time'] = df['time'].astype(str)
@@ -725,7 +726,6 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
     State('url', 'search')
 ], prevent_initial_call=True)
 def make_plots(trigger, state_search):
-    
     if state_search is not None:
         state_params = urllib.parse.parse_qs(state_search[1:])
     
@@ -799,6 +799,7 @@ def make_plots(trigger, state_search):
         for plot_var in plot_variables:
             if plot_var not in cur_drones[d_ts]['variables']:
                 drone_plot_variables.remove(plot_var)
+                
         req_var = ",".join(drone_plot_variables)
         url_base = cur_drones[d_ts]['url'] + '.csv?'
         query = '&trajectory="' + d_ts + '"' + order_by
@@ -812,10 +813,10 @@ def make_plots(trigger, state_search):
             print('e=', e)
             continue
     if len(plot_data_tables) == 0:
-        return [no_data_graph]
+        return [get_blank('No data for this combination of selections.')]
     df = pd.concat(plot_data_tables)
     if df.shape[0] < 3:
-        return [no_data_graph]
+        return [get_blank('No data for this combination of selections.')]
     df['trajectory'] = df['trajectory'].astype(str)
     colnames = list(df.columns)
     df.loc[:, 'text_time'] = df['time'].astype(str)
@@ -853,53 +854,54 @@ def make_plots(trigger, state_search):
     if mode == 'both':
         mode = 'lines+markers'
     for var in original_order:
-        dfvar = df[['time', 'text_time', 'trajectory', var]].copy()
-        # dfvar.loc[:, 'text_time'] = dfvar['time'].astype(str)
-        dfvar.loc[:, 'time'] = pd.to_datetime(dfvar['time'])
-        dfvar.dropna(subset=[var], how='all', inplace=True)
-        if dfvar.shape[0] > 2:
-            subtraces = []
-            for drn in tsdrones:
-                index = sorted(list(cur_drones.keys())).index(drn)
-                n_color = px.colors.qualitative.Dark24[index % 24]
-                dfvar_drone = dfvar.loc[(dfvar['trajectory'] == drn)]
-                if plots_decimation > 0:
-                    df2 = dfvar_drone.set_index('time')
-                    # make a index at the expected delta
-                    fill_dates = pd.date_range(dfvar_drone['time'].iloc[0], dfvar_drone['time'].iloc[-1], freq=fre)
-                    all_dates = fill_dates.append(df2.index)
-                    fill_sort = sorted(all_dates)
-                    pdf3 = df2.reindex(fill_sort)
-                    mask1 = ~pdf3['trajectory'].notna() & ~pdf3['trajectory'].shift().notna()
-                    mask2 = pdf3['trajectory'].notna()
-                    pdf4 = pdf3[mask1 | mask2]
-                    dfvar_drone = pdf4.reset_index()
-                render_test = dfvar_drone.shape[0]/(len(tsdrones)*len(original_order))
-                dfvar_drone = dfvar_drone.sort_values(by=['time', 'trajectory'], ascending=True)
-                if render_test > 1000 / (len(tsdrones) * len(original_order)):
-                    varplot = go.Scattergl(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
-                                           marker={'color': n_color},
-                                           mode=mode, hoverinfo='x+y+name')
-                else:
-                    varplot = go.Scatter(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
-                                         marker={'color': n_color},
-                                         mode=mode, hoverinfo='x+y+name')
-                subtraces.append(varplot)
-            subplots[var] = subtraces
-            title = var + sub_title
-            if var in cur_long_names:
-                title = cur_long_names[var] + sub_title
+        if var in df.columns.to_list():
+            dfvar = df[['time', 'text_time', 'trajectory', var]].copy()
+            # dfvar.loc[:, 'text_time'] = dfvar['time'].astype(str)
+            dfvar.loc[:, 'time'] = pd.to_datetime(dfvar['time'])
+            dfvar.dropna(subset=[var], how='all', inplace=True)
+            if dfvar.shape[0] > 2:
+                subtraces = []
+                for drn in tsdrones:
+                    index = sorted(list(cur_drones.keys())).index(drn)
+                    n_color = px.colors.qualitative.Dark24[index % 24]
+                    dfvar_drone = dfvar.loc[(dfvar['trajectory'] == drn)]
+                    if plots_decimation > 0 and dfvar_drone.shape[0] > 3:
+                        df2 = dfvar_drone.set_index('time')
+                        # make a index at the expected delta
+                        fill_dates = pd.date_range(dfvar_drone['time'].iloc[0], dfvar_drone['time'].iloc[-1], freq=fre)
+                        all_dates = fill_dates.append(df2.index)
+                        fill_sort = sorted(all_dates)
+                        pdf3 = df2.reindex(fill_sort)
+                        mask1 = ~pdf3['trajectory'].notna() & ~pdf3['trajectory'].shift().notna()
+                        mask2 = pdf3['trajectory'].notna()
+                        pdf4 = pdf3[mask1 | mask2]
+                        dfvar_drone = pdf4.reset_index()
+                    render_test = dfvar_drone.shape[0]/(len(tsdrones)*len(original_order))
+                    dfvar_drone = dfvar_drone.sort_values(by=['time', 'trajectory'], ascending=True)
+                    if render_test > 1000 / (len(tsdrones) * len(original_order)):
+                        varplot = go.Scattergl(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
+                                            marker={'color': n_color},
+                                            mode=mode, hoverinfo='x+y+name')
+                    else:
+                        varplot = go.Scatter(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
+                                            marker={'color': n_color},
+                                            mode=mode, hoverinfo='x+y+name')
+                    subtraces.append(varplot)
+                subplots[var] = subtraces
+                title = var + sub_title
+                if var in cur_long_names:
+                    title = cur_long_names[var] + sub_title
 
-            if var in cur_units:
-                title = title + ' (' + cur_units[var] + ')'
-            titles[var] = title
+                if var in cur_units:
+                    title = title + ' (' + cur_units[var] + ')'
+                titles[var] = title
 
     if plots_per == 'all':
         num_plots = len(subplots)
     else:
         num_plots = len(subplots) * len(tsdrones)
     if num_plots == 0:
-        return [no_data_graph]
+        return [get_blank('No data for this combination of selections.')]
     num_rows = int(num_plots / num_columns)
     if num_rows == 0:
         num_rows = num_rows + 1

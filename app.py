@@ -39,7 +39,7 @@ for collection in collections:
 
 
 
-app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True)
+app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True) 
 server = app.server  # expose server variable for Procfile
 
 app.layout = ddk.App([
