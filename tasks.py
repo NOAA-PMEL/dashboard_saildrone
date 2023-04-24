@@ -16,8 +16,7 @@ import constants
 import db
 
 logger = get_task_logger(__name__)
-
-celery_app = Celery('tasks', broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+celery_app = constants.celery_app
 
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):

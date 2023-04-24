@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, exceptions, Input, Output, State
+from dash import html, dcc, callback, exceptions, Input, Output, State, CeleryManager, DiskcacheManager
 import dash_design_kit as ddk
 import plotly.graph_objects as go
 import plotly.express as px
@@ -13,6 +13,8 @@ from plotly.subplots import make_subplots
 import datetime
 import numpy as np
 import sdig.util.zc as zc
+import time
+
 
 height_of_row = 345
 short_map_height = 450
@@ -117,9 +119,14 @@ def layout(mission_id=None, **params):
     for var in m_long_names:
         variable_options.append({'label':m_long_names[var], 'value': var})
 
+    drones_selected = []
     drone_options = []
     for drone in mission['drones']:
         drone_options.append({'label': mission['drones'][drone]['label'], 'value': drone})
+        drones_selected.append(drone)
+
+    if len(req_drones) == 0:
+        req_drones = drones_selected
 
     logo_card = []
     logos = []
@@ -184,7 +191,8 @@ def layout(mission_id=None, **params):
                         )
                     ]),
                     ddk.Card(html.Div(mission_title, style={'fontSize': '1.5em'})),
-                    logo_card
+                    logo_card,
+                    ddk.Card('To avoid overloading your browser, plots for periods longer than about 5 days data may be sub-sampled regardless of the sampling frequncey you selected.')
                 ]),
                 ddk.Block(width=.4,children=[
                     ddk.Card(children=[
@@ -585,13 +593,21 @@ def make_trajectory_trace(trace_config, state_search):
         color_bar_opts = dict(x=-.15, title=name_var, ticktext=[df['text_time'].iloc[0], df['text_time'].iloc[-1]],
                               tickvals=[df['millis'].iloc[0], df['millis'].iloc[-1]])
     zoom, center = zc.zoom_center(lons=df['longitude'], lats=df['latitude'])
-    location_trace = go.Figure(data=go.Scattermapbox(lat=df["latitude"], lon=df["longitude"],
-                                                     text=df['text'],
-                                                     marker=dict(showscale=True, color=df[plot_var],
-                                                                 colorscale=color_scale, size=8,
-                                                                 colorbar=color_bar_opts, )
-                                                     )
-                               )
+    annotation = None
+    if df.shape[0] > 25000:
+        df = df.sample(n=25000).sort_values(by=['time', 'trajectory'], ascending=True)
+        annotation = 'Sub-sampled to 25,000 points.'
+    location_trace = go.Figure(go.Scattermapbox(lat=df["latitude"], lon=df["longitude"],
+                                      text=df['text'],
+                                      marker=dict(showscale=True, color=df[plot_var],
+                                                  colorscale=color_scale, size=8,
+                                                  colorbar=color_bar_opts, 
+                                                )
+                                ))
+    if annotation is not None:
+        location_trace.add_annotation(text=annotation,
+                  xref="paper", yref="paper",
+                  x=0.01, y=0.01, showarrow=False)                           
     location_trace.update_layout(
         height=short_map_height, margin={"r": 0, "t": 0, "l": 0, "b": 0},
         mapbox_style="white-bg",
@@ -724,8 +740,12 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
     Input('plots-trigger', 'data'),
 ],[
     State('url', 'search')
-], prevent_initial_call=True)
+], prevent_initial_call=True,
+#    background=True,
+)
 def make_plots(trigger, state_search):
+    # TIMING
+    # start = time.perf_counter()
     if state_search is not None:
         state_params = urllib.parse.parse_qs(state_search[1:])
     
@@ -733,13 +753,15 @@ def make_plots(trigger, state_search):
         # I don't know how we would get here without this being set
         cur_mission_id = state_params['mission_id'][0]
 
+    plots = get_blank('Trouble downloading data. Try again, maybe with fewer data points.')
+    # DEBUG print('Set blank plot')
     num_columns = 3;
     plots_decimation = 24
     plots_start_date = None
     plots_end_date = None
 
     plots_config = json.loads(constants.redis_instance.hget("saildrone", "plots_config"))
-
+    # DEBUG print('plots config loaded')
     # must have a drone, and a variable
     if 'drones' in plots_config['config']:
         tsdrones = plots_config['config']['drones']
@@ -768,6 +790,7 @@ def make_plots(trigger, state_search):
         plots_per = plots_config['config']['plots_per']
 
     the_mission_config = json.loads(constants.redis_instance.hget("mission", cur_mission_id))
+    # DEBUG print('mission config loaded')
     cur_drones = the_mission_config['drones']
     # the next thing
     cur_long_names = the_mission_config['long_names']
@@ -792,7 +815,9 @@ def make_plots(trigger, state_search):
         if '00:00:00' in plots_end_date:
             plots_end_date = plots_end_date.replace('00:00:00', '23:59:59')
         order_by = order_by + '&time<=' + plots_end_date
-
+    # TIMING
+    # setup_over = time.perf_counter()
+    # setup_time = setup_over - start
     plot_data_tables = []
     for d_ts in tsdrones:
         drone_plot_variables = plot_variables.copy()
@@ -806,6 +831,7 @@ def make_plots(trigger, state_search):
         q = urllib.parse.quote(query, safe='&()=:/')
         drone_url = url_base + req_var + q
         try:
+            # DEBUG print('reading drone data from ' + drone_url)
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
             plot_data_tables.append(ts_df)
         except Exception as e:
@@ -826,7 +852,7 @@ def make_plots(trigger, state_search):
         df = df.sample(n=25000).sort_values(by=['time', 'trajectory'], ascending=True)
     subplots = {}
     titles = {}
-
+    # DEBUG print('finished subsample')
     if '24' in str(plots_decimation):
         fre = '24H'
     elif '18' in str(plots_decimation):
@@ -843,7 +869,9 @@ def make_plots(trigger, state_search):
         fre = '3H'
     else:
         fre = '1H'
-
+    # TIMING
+    # data_read_over = time.perf_counter()
+    # data_read_time = data_read_over - setup_over
     colnames.remove('latitude')
     colnames.remove('longitude')
     colnames.remove('time')
@@ -876,17 +904,12 @@ def make_plots(trigger, state_search):
                         mask2 = pdf3['trajectory'].notna()
                         pdf4 = pdf3[mask1 | mask2]
                         dfvar_drone = pdf4.reset_index()
-                    render_test = dfvar_drone.shape[0]/(len(tsdrones)*len(original_order))
                     dfvar_drone = dfvar_drone.sort_values(by=['time', 'trajectory'], ascending=True)
-                    if render_test > 1000 / (len(tsdrones) * len(original_order)):
-                        varplot = go.Scattergl(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
-                                            marker={'color': n_color},
-                                            mode=mode, hoverinfo='x+y+name')
-                    else:
-                        varplot = go.Scatter(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
-                                            marker={'color': n_color},
-                                            mode=mode, hoverinfo='x+y+name')
+                    varplot = go.Scattergl(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
+                                        marker={'color': n_color},
+                                        mode=mode, hoverinfo='x+y+name')
                     subtraces.append(varplot)
+                    # DEBUG print('plotting ' + str(drn))
                 subplots[var] = subtraces
                 title = var + sub_title
                 if var in cur_long_names:
@@ -956,15 +979,24 @@ def make_plots(trigger, state_search):
                 col = plot_index % num_columns
                 if col == 0:
                     col = num_columns
-
+            # DEBUG print('adding subplot')
             plots.update_xaxes({'showticklabels': True, 'gridcolor': line_rgb})
-            # plots.update_yaxes({'gridcolor': line_rgb, 'fixedrange': True})
             plots.update_yaxes({'gridcolor': line_rgb})
 
     plots['layout'].update(height=graph_height, margin=dict(l=80, r=80, b=80, t=80, ))
-    # plots.update_layout(plot_bgcolor=plot_bg)
     plots.update_traces(showlegend=False)
     ct = datetime.datetime.now()
+
+    # TIMING 
+    # end = time.perf_counter()
+    # plotting_time = end - data_read_over
+    # total_time = end-start
+    try:
+        with open("/workspace/timing.csv", "a") as time_file:
+            timings = str(len(original_order))+','+str(len(tsdrones))+','+str(setup_time)+','+str(data_read_time)+','+str(plotting_time)+','+str(total_time)+'\n'
+            time_file.write(timings)
+    except Exception as e:
+        print(e)
 
     print('At ' + str(ct) + ' plotting timeseries of ' + str(colnames) + ' for ' + str(tsdrones) + ' from ' + the_mission_config['ui']['title'])
     return [plots]

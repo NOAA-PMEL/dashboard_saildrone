@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, page_container, Input, Output
+from dash import Dash, dcc, html, page_container, Input, Output, CeleryManager
 import dash_design_kit as ddk
 import plotly.express as px
 import json
@@ -7,6 +7,10 @@ import redis
 import dateutil
 import constants
 from sdig.erddap.info import Info
+from celery import Celery
+
+# celery_app = constants.celery_app
+# background_callback_manager = CeleryManager(celery_app)
 
 version = 'v2.1'
 
@@ -37,9 +41,7 @@ for collection in collections:
     item.children=member_children
     menu.append(item)
 
-
-
-app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True) 
+app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True) #, background_callback_manager=background_callback_manager) 
 server = app.server  # expose server variable for Procfile
 
 app.layout = ddk.App([
@@ -59,36 +61,38 @@ app.layout = ddk.App([
                 href=constants.base
             ),
             ddk.Menu(children=menu),
-            ddk.Card(children=[
+        ]
+    ),            
+    ddk.SidebarCompanion(style={'margin-left': '-25px'}, children=[
+        page_container,
+        ddk.PageFooter(children=[                    
+            html.Hr(),
+            ddk.Block(width=.6, children=[
                 html.Div(children=[
                     dcc.Link('National Oceanic and Atmospheric Administration',
                             href='https://www.noaa.gov/', style={'font-size': '.8em'}),
                 ]),
                 html.Div(children=[
-                    html.Hr(),
                     dcc.Link('Pacific Marine Environmental Laboratory',
                             href='https://www.pmel.noaa.gov/',style={'font-size': '.8em'}),
                 ]),
                 html.Div(children=[
-                    html.Hr(),
                     dcc.Link('oar.pmel.webmaster@noaa.gov', href='mailto:oar.pmel.webmaster@noaa.gov', style={'font-size': '.8em'})
                 ]),
-                html.Div(children=[
-                    html.Hr(),
-                    dcc.Link('DOC |', href='https://www.commerce.gov/', style={'font-size': '.8em'}),
-                    dcc.Link(' NOAA |', href='https://www.noaa.gov/', style={'font-size': '.8em'}),
-                    dcc.Link(' OAR |', href='https://www.research.noaa.gov/', style={'font-size': '.8em'}),
-                    dcc.Link(' PMEL |', href='https://www.pmel.noaa.gov/', style={'font-size': '.8em'}),
-                    dcc.Link(' Privacy Policy |', href='https://www.noaa.gov/disclaimer', style={'font-size': '.8em'}),
-                    dcc.Link(' Disclaimer |', href='https://www.noaa.gov/disclaimer',style={'font-size': '.8em'}),
-                    dcc.Link(' Accessibility', href='https://www.pmel.noaa.gov/accessibility',style={'font-size': '.8em'})
-                ])
-            ])
-        ]
-    ),            
-    ddk.SidebarCompanion(style={'margin-left': '-25px'}, children=[
-        page_container
-    ])
+                dcc.Link('DOC |', href='https://www.commerce.gov/', style={'font-size': '.8em'}),
+                dcc.Link(' NOAA |', href='https://www.noaa.gov/', style={'font-size': '.8em'}),
+                dcc.Link(' OAR |', href='https://www.research.noaa.gov/', style={'font-size': '.8em'}),
+                dcc.Link(' PMEL |', href='https://www.pmel.noaa.gov/', style={'font-size': '.8em'}),
+                dcc.Link(' Privacy Policy |', href='https://www.noaa.gov/disclaimer', style={'font-size': '.8em'}),
+                dcc.Link(' Disclaimer |', href='https://www.noaa.gov/disclaimer',style={'font-size': '.8em'}),
+                dcc.Link(' Accessibility', href='https://www.pmel.noaa.gov/accessibility',style={'font-size': '.8em'})
+            ]),
+            ddk.Block(width=.3, children=[
+                html.Img(src=app.get_asset_url('50th_webheader_720px__a.png'), style={'width': '600px'})
+            ]),
+        ])
+    ]),
+
 ])
 
 if __name__ == '__main__':
