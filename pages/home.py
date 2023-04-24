@@ -35,7 +35,7 @@ def layout():
     overview_map.update_layout(
         legend_title='Mission',
         legend_orientation="v",
-        legend_x=.21,
+        legend_x=1.,
         height=1250,
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         mapbox_style="white-bg",
