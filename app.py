@@ -87,9 +87,7 @@ app.layout = ddk.App([
                 dcc.Link(' Disclaimer |', href='https://www.noaa.gov/disclaimer',style={'font-size': '.8em'}),
                 dcc.Link(' Accessibility', href='https://www.pmel.noaa.gov/accessibility',style={'font-size': '.8em'})
             ]),
-            ddk.Block(width=.3, children=[
-                html.Img(src=app.get_asset_url('50th_webheader_720px__a.png'), style={'width': '600px'})
-            ]),
+            html.Img(src=app.get_asset_url('50th_webheader_720px__a.png'), style={'width': '600px'})
         ])
     ]),
 
