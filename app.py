@@ -9,8 +9,8 @@ import constants
 from sdig.erddap.info import Info
 from celery import Celery
 
-# celery_app = constants.celery_app
-# background_callback_manager = CeleryManager(celery_app)
+celery_app = constants.celery_app
+background_callback_manager = CeleryManager(celery_app)
 
 version = 'v2.1'
 
@@ -41,7 +41,7 @@ for collection in collections:
     item.children=member_children
     menu.append(item)
 
-app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True) #, background_callback_manager=background_callback_manager) 
+app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=background_callback_manager) 
 server = app.server  # expose server variable for Procfile
 
 app.layout = ddk.App([
@@ -88,7 +88,7 @@ app.layout = ddk.App([
                     dcc.Link(' Disclaimer |', href='https://www.noaa.gov/disclaimer',style={'font-size': '.8em'}),
                     dcc.Link(' Accessibility', href='https://www.pmel.noaa.gov/accessibility',style={'font-size': '.8em'})
                 ]),
-                ddk.Block(width=.7, children=[html.Img(src=app.get_asset_url('50th_webheader_720px__a.png'), style={'width': '600px'})])
+                ddk.Block(width=.7,children=[html.Img(src=app.get_asset_url('50th_webheader_720px__a.png'), style={'width': '600px'})])
             ])
         ])
     ]),

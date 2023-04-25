@@ -192,7 +192,7 @@ def layout(mission_id=None, **params):
                     ]),
                     ddk.Card(html.Div(mission_title, style={'fontSize': '1.5em'})),
                     logo_card,
-                    ddk.Card('To avoid overloading your browser, plots for periods longer than about 5 days data may be sub-sampled regardless of the sampling frequncey you selected.')
+                    ddk.Card('To avoid overloading your browser, plots will be sub-sampled to 25,000 points regardless of the sampling frequncey you selected.')
                 ]),
                 ddk.Block(width=.4,children=[
                     ddk.Card(children=[
@@ -293,6 +293,7 @@ def layout(mission_id=None, **params):
                             ])
                         
                     ]),
+                    html.Progress(id="progress-bar", value="0", style={'visibility':'hidden', 'width':'100%'}),
                     dcc.Loading(ddk.Graph(id='timeseries-plots', figure=blank_graph))
                 ])
             ])
@@ -734,18 +735,25 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
     return ['go']
 
 
-@callback([
+@callback(
     Output('timeseries-plots', 'figure'),
-],[
     Input('plots-trigger', 'data'),
-],[
-    State('url', 'search')
-], prevent_initial_call=True,
-#    background=True,
+    State('url', 'search'),
+    background=True,
+    running=[
+        (
+            Output("progress-bar", "style"),
+            {"visibility": "visible", "width":"100%"},
+            {"visibility": "hidden", "widht": "100%"},
+        ),
+    ],
+    progress=[Output("progress-bar", "value"), Output("progress-bar", "max")],
+    prevent_initial_call=True,    
 )
-def make_plots(trigger, state_search):
+def make_plots(set_progress, trigger, state_search):
     # TIMING
     # start = time.perf_counter()
+    set_progress(("0","0"))
     if state_search is not None:
         state_params = urllib.parse.parse_qs(state_search[1:])
     
@@ -775,6 +783,12 @@ def make_plots(trigger, state_search):
             return [blank_graph]
     else:
         return [blank_graph]
+    max_progress = (len(tsdrones)*len(plot_variables)) + 2
+    progress = 1
+    print('set progress')
+    set_progress((str(progress), str(max_progress)))
+    print('finished set progress')
+    print('ack')
     # don't have to have a decimation value, but it's gonna be there anyway
     if 'plots_decimation' in plots_config['config']:
         plots_decimation = int(plots_config['config']['plots_decimation'])
@@ -834,6 +848,8 @@ def make_plots(trigger, state_search):
             # DEBUG print('reading drone data from ' + drone_url)
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
             plot_data_tables.append(ts_df)
+            progress = progress + 1
+            set_progress((str(progress), str(max_progress)))
         except Exception as e:
             print('Timeseries plots: exception getting data from ' + drone_url)
             print('e=', e)
@@ -908,6 +924,8 @@ def make_plots(trigger, state_search):
                     varplot = go.Scattergl(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
                                         marker={'color': n_color},
                                         mode=mode, hoverinfo='x+y+name')
+                    progress = progress + 1
+                    set_progress((str(progress), str(max_progress)))
                     subtraces.append(varplot)
                     # DEBUG print('plotting ' + str(drn))
                 subplots[var] = subtraces
@@ -985,18 +1003,21 @@ def make_plots(trigger, state_search):
 
     plots['layout'].update(height=graph_height, margin=dict(l=80, r=80, b=80, t=80, ))
     plots.update_traces(showlegend=False)
+    progress = progress + 1
+    set_progress((str(progress), str(max_progress)))
     ct = datetime.datetime.now()
 
     # TIMING 
     # end = time.perf_counter()
     # plotting_time = end - data_read_over
     # total_time = end-start
-    try:
-        with open("/workspace/timing.csv", "a") as time_file:
-            timings = str(len(original_order))+','+str(len(tsdrones))+','+str(setup_time)+','+str(data_read_time)+','+str(plotting_time)+','+str(total_time)+'\n'
-            time_file.write(timings)
-    except Exception as e:
-        print(e)
+    # try:
+    #     with open("/workspace/timing.csv", "a") as time_file:
+    #         timings = str(len(original_order))+','+str(len(tsdrones))+','+str(setup_time)+','+str(data_read_time)+','+str(plotting_time)+','+str(total_time)+'\n'
+    #         time_file.write(timings)
+    # except Exception as e:
+    #     print(e)
 
     print('At ' + str(ct) + ' plotting timeseries of ' + str(colnames) + ' for ' + str(tsdrones) + ' from ' + the_mission_config['ui']['title'])
-    return [plots]
+    set_progress(("0", "0"))
+    return plots
