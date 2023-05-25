@@ -497,7 +497,31 @@
                 }
             }
         }
-    }         
+    },
+    "saildrone_2023":{
+        "title": "2023 Saildrone Missions",
+        "missions": {
+            "2023_1_atlantic_hurricane": {
+                "active": "true",
+                "ui": {
+                    "title": "2023 Atlantic Hurricane (Sea Trial)",
+                    "href": "https://www.pmel.noaa.gov/saildrone-hurricane/2023/index.html",
+                    "max_columns": "3",
+                    "logo": "AOML_PMEL.png"
+                },
+                "drones":{
+                    "1040.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1040_hurricane_2023",
+                        "label": "1040"
+                    },
+                    "1069.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1069_hurricane_2023",
+                        "label": "1069"
+                    }  
+                }
+            }
+        }
+    }        
 }
 
 }

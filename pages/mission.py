@@ -762,14 +762,16 @@ def make_plots(set_progress, trigger, state_search):
         cur_mission_id = state_params['mission_id'][0]
 
     plots = get_blank('Trouble downloading data. Try again, maybe with fewer data points.')
-    # DEBUG print('Set blank plot')
+    # DEBUG 
+    # print('Set blank plot')
     num_columns = 3;
     plots_decimation = 24
     plots_start_date = None
     plots_end_date = None
 
     plots_config = json.loads(constants.redis_instance.hget("saildrone", "plots_config"))
-    # DEBUG print('plots config loaded')
+    # DEBUG 
+    # print('plots config loaded')
     # must have a drone, and a variable
     if 'drones' in plots_config['config']:
         tsdrones = plots_config['config']['drones']
@@ -804,7 +806,8 @@ def make_plots(set_progress, trigger, state_search):
         plots_per = plots_config['config']['plots_per']
 
     the_mission_config = json.loads(constants.redis_instance.hget("mission", cur_mission_id))
-    # DEBUG print('mission config loaded')
+    # DEBUG 
+    # print('mission config loaded')
     cur_drones = the_mission_config['drones']
     # the next thing
     cur_long_names = the_mission_config['long_names']
@@ -845,7 +848,8 @@ def make_plots(set_progress, trigger, state_search):
         q = urllib.parse.quote(query, safe='&()=:/')
         drone_url = url_base + req_var + q
         try:
-            # DEBUG print('reading drone data from ' + drone_url)
+            # DEBUG 
+            # print('reading drone data from ' + drone_url)
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
             plot_data_tables.append(ts_df)
             progress = progress + 1
@@ -868,7 +872,8 @@ def make_plots(set_progress, trigger, state_search):
         df = df.sample(n=25000).sort_values(by=['time', 'trajectory'], ascending=True)
     subplots = {}
     titles = {}
-    # DEBUG print('finished subsample')
+    # DEBUG 
+    # print('finished subsample')
     if '24' in str(plots_decimation):
         fre = '24H'
     elif '18' in str(plots_decimation):
@@ -927,7 +932,8 @@ def make_plots(set_progress, trigger, state_search):
                     progress = progress + 1
                     set_progress((str(progress), str(max_progress)))
                     subtraces.append(varplot)
-                    # DEBUG print('plotting ' + str(drn))
+                    # DEBUG 
+                    # print('plotting ' + str(drn))
                 subplots[var] = subtraces
                 title = var + sub_title
                 if var in cur_long_names:
@@ -997,7 +1003,8 @@ def make_plots(set_progress, trigger, state_search):
                 col = plot_index % num_columns
                 if col == 0:
                     col = num_columns
-            # DEBUG print('adding subplot')
+            # DEBUG 
+            # print('adding subplot')
             plots.update_xaxes({'showticklabels': True, 'gridcolor': line_rgb})
             plots.update_yaxes({'gridcolor': line_rgb})
 
