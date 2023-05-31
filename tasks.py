@@ -22,7 +22,7 @@ celery_app = constants.celery_app
 def setup_periodic_tasks(sender, **kwargs):
     # Update active missions once an hour at 32 minutes past
     sender.add_periodic_task(
-         crontab(minute='32'),
+         crontab(minute='32', hour='*'),
          update_active_missions.s(),
          name='Update the missions database for active missions'
     )
@@ -124,12 +124,10 @@ def update_active_missions():
                     new_locations_df = pd.concat([new_locations_df, df])
                 outeridx = outeridx + 1       
                 if mid in locations_df['mission_id'].values:
-                    # if there are already entries with this mission, replace the locations for the mission in the locations_df with the values from new_locations_df
-                    cols = list(locations_df.columns) 
-                    locations_df.loc[locations_df.mission_id.isin(new_locations_df.mission_id), cols] = new_locations_df[cols]
-                else:
-                    # if there are no such entries, concat the new locations
-                    locations_df = pd.concat([locations_df, new_locations_df])
+                    # if there are already entries with this mission, replace them by dropping and concatenating the new ones
+                    locations_df.drop(locations_df[locations_df['mission_id'] == mid].index, inplace = True)
+                locations_df = pd.concat([locations_df, new_locations_df])
 
     logger.info('Updating locations of active missions...')
+    print(locations_df.loc[locations_df['mission_id']=='2023_1_atlantic_hurricane'])
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
