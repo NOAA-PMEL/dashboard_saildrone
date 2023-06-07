@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 from celery import Celery
 import os
+import tasks # necessary everything celery uses to be imported here. 
 
 # Define a redis instance. This definition will work both locally and with an app deployed to DE:
 redis_instance = redis.StrictRedis.from_url(
