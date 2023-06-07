@@ -1,3 +1,5 @@
 web=1
 worker-default=1
 worker-beat=1
+worker-tasks=1
+worker-tasks-beat=1
