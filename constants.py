@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 from celery import Celery
 import os
-import tasks # necessary everything celery uses to be imported here. 
+ 
 
 # Define a redis instance. This definition will work both locally and with an app deployed to DE:
 redis_instance = redis.StrictRedis.from_url(
@@ -12,6 +12,8 @@ redis_instance = redis.StrictRedis.from_url(
 )
 
 celery_app = Celery('tasks', broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+
+import tasks # necessary everything celery uses to be imported here.
 
 ESRI_API_KEY = os.environ.get('ESRI_API_KEY')
 
