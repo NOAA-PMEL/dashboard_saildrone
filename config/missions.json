@@ -504,20 +504,40 @@
             "2023_1_atlantic_hurricane": {
                 "active": "true",
                 "ui": {
-                    "title": "2023 Atlantic Hurricane (Sea Trial)",
+                    "title": "2023 Atlantic Hurricane",
                     "href": "https://www.pmel.noaa.gov/saildrone-hurricane/2023/index.html",
                     "max_columns": "3",
                     "logo": "AOML_PMEL.png"
                 },
                 "drones":{
+                    "1031.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1031_hurricane_2023",
+                        "label": "1031"
+                    },
+                    "1036.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1036_hurricane_2023",
+                        "label": "1036"
+                    },
                     "1040.0": {
                         "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1040_hurricane_2023",
                         "label": "1040"
                     },
+                    "1041.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1041_hurricane_2023",
+                        "label": "1041"
+                    },
+                    "1065.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1065_hurricane_2023",
+                        "label": "1065"
+                    },
+                    "1068.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1068_hurricane_2023",
+                        "label": "1068"
+                    },
                     "1069.0": {
                         "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1069_hurricane_2023",
                         "label": "1069"
-                    }  
+                    }                   
                 }
             }
         }
