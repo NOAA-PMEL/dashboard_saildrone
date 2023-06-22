@@ -124,8 +124,9 @@ def update_active_missions():
                     new_locations_df = pd.concat([new_locations_df, df])
                 outeridx = outeridx + 1       
                 if mid in locations_df['mission_id'].values:
-                    # if there are already entries with this mission, replace them by dropping and concatenating the new ones
-                    locations_df.drop(locations_df[locations_df['mission_id'] == mid].index, inplace = True)
+                    # Keep all the other stuff, and remove the existing rows for this mission
+                    locations_df = locations_df[locations_df['mission_id'] != mid]
+                # Put in the new missions
                 locations_df = pd.concat([locations_df, new_locations_df])
 
     logger.info('Updating locations of active missions...')
