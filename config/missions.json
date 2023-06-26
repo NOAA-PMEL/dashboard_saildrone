@@ -501,6 +501,29 @@
     "saildrone_2023":{
         "title": "2023 Saildrone Missions",
         "missions": {
+            "2023_2_tpos": {
+                "active": "true",
+                "ui": {
+                    "title": "2023 TPOS PMEL Surface Data",
+                    "href": "https://www.pmel.noaa.gov/ocs/ocs-saildrone-mission-blog-tpos-2023-mission",
+                    "max_columns": "3",
+                    "logo": "OCS-logo.png"
+                },
+                "drones": {
+                    "1030.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1030_tpos_2023",
+                        "label": "1030"
+                    },
+                    "1033.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1033_tpos_2023",
+                        "label": "1033"
+                    },
+                    "1079.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1079_tpos_2023",
+                        "label": "1079"
+                    }
+                }                
+            },
             "2023_1_atlantic_hurricane": {
                 "active": "true",
                 "ui": {
