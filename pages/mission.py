@@ -762,16 +762,14 @@ def make_plots(set_progress, trigger, state_search):
         cur_mission_id = state_params['mission_id'][0]
 
     plots = get_blank('Trouble downloading data. Try again, maybe with fewer data points.')
-    # DEBUG 
-    # print('Set blank plot')
+    # DEBUG     print('Set blank plot')
     num_columns = 3;
     plots_decimation = 24
     plots_start_date = None
     plots_end_date = None
 
     plots_config = json.loads(constants.redis_instance.hget("saildrone", "plots_config"))
-    # DEBUG 
-    # print('plots config loaded')
+    # DEBUG     print('plots config loaded')
     # must have a drone, and a variable
     if 'drones' in plots_config['config']:
         tsdrones = plots_config['config']['drones']
@@ -787,10 +785,8 @@ def make_plots(set_progress, trigger, state_search):
         return [blank_graph]
     max_progress = (len(tsdrones)*len(plot_variables)) + 2
     progress = 1
-    print('set progress')
     set_progress((str(progress), str(max_progress)))
-    print('finished set progress')
-    print('ack')
+
     # don't have to have a decimation value, but it's gonna be there anyway
     if 'plots_decimation' in plots_config['config']:
         plots_decimation = int(plots_config['config']['plots_decimation'])
@@ -806,8 +802,7 @@ def make_plots(set_progress, trigger, state_search):
         plots_per = plots_config['config']['plots_per']
 
     the_mission_config = json.loads(constants.redis_instance.hget("mission", cur_mission_id))
-    # DEBUG 
-    # print('mission config loaded')
+    # DEBUG     print('mission config loaded')
     cur_drones = the_mission_config['drones']
     # the next thing
     cur_long_names = the_mission_config['long_names']
@@ -848,8 +843,7 @@ def make_plots(set_progress, trigger, state_search):
         q = urllib.parse.quote(query, safe='&()=:/')
         drone_url = url_base + req_var + q
         try:
-            # DEBUG 
-            # print('reading drone data from ' + drone_url)
+            # DEBUG             print('reading drone data from ' + drone_url)
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
             plot_data_tables.append(ts_df)
             progress = progress + 1

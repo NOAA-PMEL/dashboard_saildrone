@@ -61,8 +61,7 @@ def update_mission(mid, mission):
         df['mission_id'] = mid
         df['title'] = mission['ui']['title']
         df[dsg_id] = df[dsg_id].astype(str)
-        info.get_variables()
-        drone_vars, d_long_names, d_units, standard_names = info.get_variables()
+        drone_vars, d_long_names, d_units, standard_names, var_types = info.get_variables()
         drones[d]['variables'] = drone_vars
         depth_name, dsg_id = info.get_dsg_info()
         dsg_ids.append(dsg_id['trajectory'])
@@ -130,5 +129,4 @@ def update_active_missions():
                 locations_df = pd.concat([locations_df, new_locations_df])
 
     logger.info('Updating locations of active missions...')
-    print(locations_df.loc[locations_df['mission_id']=='2023_1_atlantic_hurricane'])
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
