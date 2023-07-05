@@ -107,8 +107,23 @@ def update_active_missions():
     with open('config/missions.json') as missions_config:
         config_json = json.load(missions_config)
     collections = config_json['collections']
-    # all of the currently save locations
+
+    # remove locations for active misions
+    # all of the currently saved locations
     locations_df = db.get_locations()
+    active_missions = []
+    for collection in collections:
+        logger.info('Processing missions for ' + collection)
+        member = collections[collection]      
+        for idx, mid in enumerate(member['missions']):
+            mission = member['missions'][mid]
+            if mission['active'] == "true":
+                active_missions.append(mid)
+    # Keep the location data if the mission is not active
+    locations_df = locations_df[~locations_df.mission_id.isin(active_missions)]
+    # Finished removing locations of active missions
+
+    # Get the latest locations of active missions and append them
     outeridx = 0
     for collection in collections:
         logger.info('Processing missions for ' + collection)
@@ -122,10 +137,7 @@ def update_active_missions():
                 else:
                     new_locations_df = pd.concat([new_locations_df, df])
                 outeridx = outeridx + 1       
-                if mid in locations_df['mission_id'].values:
-                    # Keep all the other stuff, and remove the existing rows for this mission
-                    locations_df = locations_df[locations_df['mission_id'] != mid]
-                # Put in the new missions
+                # Put in the new locations
                 locations_df = pd.concat([locations_df, new_locations_df])
 
     logger.info('Updating locations of active missions...')

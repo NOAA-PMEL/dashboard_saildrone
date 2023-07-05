@@ -101,9 +101,15 @@ def layout(mission_id=None, **params):
         set_end_date = params['end_date']
     else:
         set_end_date = df.time.max()
+        sed = datetime.datetime.strptime(set_end_date, '%Y-%m-%dT%H:%M:%SZ')
+        sed = sed + datetime.timedelta(days=1)
+        set_end_date = sed.isoformat() + 'Z'
         
     mission_start_date = df.time.min()
     mission_end_date = df.time.max()
+    ed = datetime.datetime.strptime(mission_end_date, '%Y-%m-%dT%H:%M:%SZ')
+    ed = ed + datetime.timedelta(days=1)
+    mission_end_date = ed.isoformat() + 'Z'
 
     if 'columns' in params:
         set_max_columns = params['columns']
