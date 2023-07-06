@@ -96,19 +96,20 @@ def layout(mission_id=None, **params):
     else:
         set_start_date = df.time.min()
         
+    # if the mission data ends at midnight, the extra day is not enough. You need 2.
 
     if 'end_date' in params:
         set_end_date = params['end_date']
     else:
         set_end_date = df.time.max()
         sed = datetime.datetime.strptime(set_end_date, '%Y-%m-%dT%H:%M:%SZ')
-        sed = sed + datetime.timedelta(days=1)
+        sed = sed + datetime.timedelta(days=2)
         set_end_date = sed.isoformat() + 'Z'
         
     mission_start_date = df.time.min()
     mission_end_date = df.time.max()
     ed = datetime.datetime.strptime(mission_end_date, '%Y-%m-%dT%H:%M:%SZ')
-    ed = ed + datetime.timedelta(days=1)
+    ed = ed + datetime.timedelta(days=2)
     mission_end_date = ed.isoformat() + 'Z'
 
     if 'columns' in params:
@@ -136,6 +137,10 @@ def layout(mission_id=None, **params):
 
     logo_card = []
     logos = []
+    downloads = {'display': 'none'}
+    if 'downloads' in mission:
+        if mission['downloads'] == 'true':
+            downloads = {'display': 'block'}
     if 'logo' in mission['ui']:
         logo_img = mission['ui']['logo']
         if not logo_img.startswith("http"):
@@ -183,8 +188,22 @@ def layout(mission_id=None, **params):
                                 placeholder='Select one or more drones to plot.',
                                 value=req_drones)
                         ]),
-                        ddk.Graph(id='drone-location', figure=drone_map)
+                        ddk.Graph(id='drone-location', figure=drone_map),
                     ]),
+                    ddk.ControlCard(style=downloads, orientation='horizontal', children=[
+                        ddk.ControlItem(
+                            dcc.Dropdown(placeholder="Select a format",
+                                multi=False,
+                                options=[
+                                    {'label': 'HTML', 'value': '.html'},
+                                    {'label': 'netCDF', 'value': '.ncCF'}
+                                ]
+                            ),
+                        ),
+                        ddk.ControlItem(
+                            html.Button("Download", id='download')
+                        )
+                    ])
                 ]),
                 ddk.Block(width=.2, children=[
                     ddk.Card(children=[
