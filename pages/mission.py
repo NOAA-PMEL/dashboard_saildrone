@@ -96,20 +96,20 @@ def layout(mission_id=None, **params):
     else:
         set_start_date = df.time.min()
         
-    # if the mission data ends at midnight, the extra day is not enough. You need 2.
+    # Make sure you cover the rest of the last day.
 
     if 'end_date' in params:
         set_end_date = params['end_date']
     else:
         set_end_date = df.time.max()
         sed = datetime.datetime.strptime(set_end_date, '%Y-%m-%dT%H:%M:%SZ')
-        sed = sed + datetime.timedelta(days=2)
+        sed = sed + datetime.timedelta(hours=36)
         set_end_date = sed.isoformat() + 'Z'
         
     mission_start_date = df.time.min()
     mission_end_date = df.time.max()
     ed = datetime.datetime.strptime(mission_end_date, '%Y-%m-%dT%H:%M:%SZ')
-    ed = ed + datetime.timedelta(days=2)
+    ed = ed + datetime.timedelta(hours=36)
     mission_end_date = ed.isoformat() + 'Z'
 
     if 'columns' in params:
