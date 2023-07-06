@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, exceptions, Input, Output, State, CeleryManager, DiskcacheManager
+from dash import html, dcc, callback, exceptions, Input, Output, State, CeleryManager, DiskcacheManager, ctx
 import dash_design_kit as ddk
 import plotly.graph_objects as go
 import plotly.express as px
@@ -14,6 +14,7 @@ import datetime
 import numpy as np
 import sdig.util.zc as zc
 import time
+import dash_bootstrap_components as dbc
 
 
 height_of_row = 345
@@ -140,7 +141,7 @@ def layout(mission_id=None, **params):
     downloads = {'display': 'none'}
     if 'downloads' in mission:
         if mission['downloads'] == 'true':
-            downloads = {'display': 'block'}
+            downloads = {'display': ''}
     if 'logo' in mission['ui']:
         logo_img = mission['ui']['logo']
         if not logo_img.startswith("http"):
@@ -190,20 +191,7 @@ def layout(mission_id=None, **params):
                         ]),
                         ddk.Graph(id='drone-location', figure=drone_map),
                     ]),
-                    ddk.ControlCard(style=downloads, orientation='horizontal', children=[
-                        ddk.ControlItem(
-                            dcc.Dropdown(placeholder="Select a format",
-                                multi=False,
-                                options=[
-                                    {'label': 'HTML', 'value': '.html'},
-                                    {'label': 'netCDF', 'value': '.ncCF'}
-                                ]
-                            ),
-                        ),
-                        ddk.ControlItem(
-                            html.Button("Download", id='download')
-                        )
-                    ])
+
                 ]),
                 ddk.Block(width=.2, children=[
                     ddk.Card(children=[
@@ -217,7 +205,12 @@ def layout(mission_id=None, **params):
                     ]),
                     ddk.Card(html.Div(mission_title, style={'fontSize': '1.5em'})),
                     logo_card,
-                    ddk.Card('To avoid overloading your browser, plots will be sub-sampled to 25,000 points regardless of the sampling frequncey you selected.')
+                    ddk.Card('To avoid overloading your browser, plots will be sub-sampled to 25,000 points regardless of the sampling frequncey you selected.'),
+                    ddk.ControlCard(style=downloads, orientation='horizontal', children=[
+                        ddk.ControlItem(
+                            html.Button("Download", id='download', disabled=True)
+                        )
+                    ])
                 ]),
                 ddk.Block(width=.4,children=[
                     ddk.Card(children=[
@@ -321,9 +314,55 @@ def layout(mission_id=None, **params):
                     html.Progress(id="progress-bar", value="0", style={'visibility':'hidden', 'width':'100%'}),
                     dcc.Loading(ddk.Graph(id='timeseries-plots', figure=blank_graph))
                 ])
+            ]),
+            dbc.Modal(id='download-dialog', children=[
+                dbc.ModalHeader(children=['Download links for the drones show in the timeseries plot:']),
+                dbc.ModalBody(id='download-links', children="some links"),
+                dbc.ModalFooter(dbc.Button("Close", id="close", className="ml-auto")),
             ])
         ])
         return layout
+
+
+
+@callback(
+    [
+        Output('download-dialog', 'is_open'),
+        Output('download-links', 'children')
+    ],
+    [
+        Input('download', 'n_clicks'),
+        Input('close', 'n_clicks')
+    ]
+)
+def open_download_dialog(open_click, close_click):
+    if ctx.triggered_id is None:
+        return [False, dash.no_update]
+    if "close" in ctx.triggered_id:
+        return [False, dash.no_update]
+    download_s = constants.redis_instance.hget("downloads", "urls")
+    thead = html.Thead(html.Tr([html.Th("Saildrone"), html.Th("CSV"), html.Th("HTML"), html.Th("netCDF")]))
+    body_rows = []
+    if download_s is not None and len(download_s) > 0 and 'download' in ctx.triggered_id:
+        download_dict = json.loads(download_s)
+        for drone_down in download_dict:
+            csv_url = download_dict[drone_down]
+            html_url = csv_url.replace('.csv', '.htmlTable')
+            netcdf_url = csv_url.replace('.csv', '.ncCF')
+            row = html.Tr(
+                    [
+                        html.Td(drone_down, style={"width":"25%"}), 
+                        html.Td(dcc.Link('.csv', href=csv_url, target='_blank'), style={"width":"25%"}), 
+                        html.Td(dcc.Link('.html', href=html_url, target='_blank'), style={"width":"25%"}), 
+                        html.Td(dcc.Link('.nc', href=netcdf_url, target='_blank'), style={"width":"25%"})
+                    ]
+                )
+            body_rows.append(row)
+        table = html.Table(children=[thead, html.Tbody(children=body_rows)], style={"width":"100%"})
+        return [True, table]
+    else:
+        return [False, dash.no_update]
+
 
 @callback(
 [
@@ -762,6 +801,7 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
 
 @callback(
     Output('timeseries-plots', 'figure'),
+    Output('download', 'disabled'),
     Input('plots-trigger', 'data'),
     State('url', 'search'),
     background=True,
@@ -799,15 +839,15 @@ def make_plots(set_progress, trigger, state_search):
     if 'drones' in plots_config['config']:
         tsdrones = plots_config['config']['drones']
     else:
-        return [blank_graph]
+        return [blank_graph, True]
 
     if 'timeseries' in plots_config['config']:
         plot_variables = plots_config['config']['timeseries']
         original_order = plot_variables.copy()
         if len(plot_variables) == 0:
-            return [blank_graph]
+            return [blank_graph, True]
     else:
-        return [blank_graph]
+        return [blank_graph, True]
     max_progress = (len(tsdrones)*len(plot_variables)) + 2
     progress = 1
     set_progress((str(progress), str(max_progress)))
@@ -855,6 +895,7 @@ def make_plots(set_progress, trigger, state_search):
     # TIMING
     # setup_over = time.perf_counter()
     # setup_time = setup_over - start
+    download_urls = {}
     plot_data_tables = []
     for d_ts in tsdrones:
         drone_plot_variables = plot_variables.copy()
@@ -866,7 +907,10 @@ def make_plots(set_progress, trigger, state_search):
         url_base = cur_drones[d_ts]['url'] + '.csv?'
         query = '&trajectory="' + d_ts + '"' + order_by
         q = urllib.parse.quote(query, safe='&()=:/')
+        full_query = '&trajectory="' + d_ts + '"'
+        fq = urllib.parse.quote(full_query, safe='&()=:/')
         drone_url = url_base + req_var + q
+        download_urls[d_ts] = url_base + req_var + fq
         try:
             # DEBUG print('reading drone data from ' + drone_url)
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
@@ -877,11 +921,12 @@ def make_plots(set_progress, trigger, state_search):
             print('Timeseries plots: exception getting data from ' + drone_url)
             print('e=', e)
             continue
+    constants.redis_instance.hset("downloads", "urls", json.dumps(download_urls))
     if len(plot_data_tables) == 0:
-        return [get_blank('No data for this combination of selections.')]
+        return [get_blank('No data for this combination of selections.'), True]
     df = pd.concat(plot_data_tables)
     if df.shape[0] < 3:
-        return [get_blank('No data for this combination of selections.')]
+        return [get_blank('No data for this combination of selections.'), True]
     df['trajectory'] = df['trajectory'].astype(str)
     colnames = list(df.columns)
     df.loc[:, 'text_time'] = df['time'].astype(str)
@@ -965,7 +1010,7 @@ def make_plots(set_progress, trigger, state_search):
     else:
         num_plots = len(subplots) * len(tsdrones)
     if num_plots == 0:
-        return [get_blank('No data for this combination of selections.')]
+        return [get_blank('No data for this combination of selections.'), True]
     num_rows = int(num_plots / num_columns)
     if num_rows == 0:
         num_rows = num_rows + 1
@@ -1043,4 +1088,4 @@ def make_plots(set_progress, trigger, state_search):
 
     print('At ' + str(ct) + ' plotting timeseries of ' + str(colnames) + ' for ' + str(tsdrones) + ' from ' + the_mission_config['ui']['title'])
     set_progress(("0", "0"))
-    return plots
+    return [plots, False]

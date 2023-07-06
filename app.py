@@ -6,6 +6,7 @@ import os
 import redis
 import dateutil
 import constants
+import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
 from celery import Celery
 
@@ -26,7 +27,7 @@ collections = config_json['collections']
 
 menu = []
 coloridx = 0
-for collection in collections:
+for collection in sorted(collections, reverse=True):
     member_children = []
     member = collections[collection]
     item = ddk.CollapsibleMenu(title=member['title'])
@@ -41,7 +42,7 @@ for collection in collections:
     item.children=member_children
     menu.append(item)
 
-app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=background_callback_manager) 
+app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=background_callback_manager, external_stylesheets=[dbc.themes.BOOTSTRAP]) 
 server = app.server  # expose server variable for Procfile
 
 app.layout = ddk.App([

@@ -5,6 +5,7 @@
         "missions": {
             "2017_1_tpos": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2017 Saildrone PMEL TPOS Mission",
                     "href": "https://www.pmel.noaa.gov/ocs/saildrone",
@@ -30,6 +31,7 @@
         "missions": {
             "2018_1_arctic": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2018 Saildrone Arctic Mission",
                     "href": "https://www.pmel.noaa.gov/arctic/",
@@ -59,6 +61,7 @@
             },
             "2018_2_tpos": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2018 TPOS Mission",
                     "href": "https://www.pmel.noaa.gov/ocs/saildrone",
@@ -87,6 +90,7 @@
             },
             "2018_3_west_coast": {
                 "active": "false",
+                "downloads": "true",
                 "ui":{
                     "title": "2018 West Coast Survey",
                     "href": "https://www.fisheries.noaa.gov/region/west-coast#northwest-science",
@@ -124,6 +128,7 @@
         "missions": {
             "2019_1_arctic": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2019 Saildrone Arctic Mission",
                     "href": "https://www.pmel.noaa.gov/arctic/",
@@ -161,6 +166,7 @@
             },
             "2019_2_tpos": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2019 TPOS Mission",
                     "href": "https://www.pmel.noaa.gov/ocs/saildrone",
@@ -189,6 +195,7 @@
             },
             "2019_3_west_coast": {
                 "active": "false",
+                "downloads": "true",
                 "ui":{
                     "title": "2019 West Coast Survey",
                     "href": "https://www.fisheries.noaa.gov/region/west-coast#northwest-science",
@@ -238,6 +245,7 @@
         "missions": {
             "2020_1_arctic_ocs": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2020 Arctic OCS Single Beam Mapping",
                     "href": "https://nauticalcharts.noaa.gov/",
@@ -266,6 +274,7 @@
             },
             "2020_2_afsc_pollock": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2020 Alaska Fisheries Science Center Pollock Survey",
                     "href": "https://www.fisheries.noaa.gov/feature-story/pollock-survey-begins-eastern-bering-sea",
@@ -295,6 +304,7 @@
         "missions": {
             "2021_6_tpos": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2021 Tropical Pacific Observing System Mission",
                     "href": "https://www.pmel.noaa.gov/ocs/saildrone",
@@ -315,6 +325,7 @@
             },
             "2021_5_swfsc_nrt": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2021 NOAA SWFSC NRT Mission",
                     "href": "https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center",
@@ -335,6 +346,7 @@
             },
             "2021_4_nwfsc_hake": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2021 NOAA NWFSC Hake Survey Mission",
                     "href": "https://www.fisheries.noaa.gov/about/northwest-fisheries-science-center",
@@ -355,6 +367,7 @@
             },
             "2021_2_arctic_ocs": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2021 Arctic OCS Single Beam Data",
                     "href": "https://www.pmel.noaa.gov/project/arctic",
@@ -383,6 +396,7 @@
             },
             "2021_3_atlantic_hurricane": {
                 "active": "false",
+                "downloads": "false",
                 "ui": {
                     "title": "2021 Atlantic Hurricane",
                     "href": "https://www.pmel.noaa.gov/saildrone-hurricane2021/index.html",
@@ -419,6 +433,7 @@
         "missions": {
             "2022_1_atlantic_hurricane": {
                 "active": "false",
+                "downloads": "false",
                 "ui": {
                     "title": "2022 Atlantic Hurricane",
                     "href": "https://www.pmel.noaa.gov/saildrone-hurricane/2022/index.html",
@@ -458,6 +473,7 @@
             },
             "2022_5_tpos": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2022 Tropical Pacific Observing System Mission",
                     "href": "https://www.pmel.noaa.gov/ocs/saildrone",
@@ -478,6 +494,7 @@
             },
             "2022_4_swfsc_nrt": {
                 "active": "false",
+                "downloads": "true",
                 "ui": {
                     "title": "2022 NOAA SWFSC NRT Mission",
                     "href": "https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center",
@@ -503,6 +520,7 @@
         "missions": {
             "2023_2_tpos": {
                 "active": "true",
+                "downloads": "true",
                 "ui": {
                     "title": "2023 TPOS PMEL Surface Data",
                     "href": "https://www.pmel.noaa.gov/ocs/ocs-saildrone-mission-blog-tpos-2023-mission",
@@ -526,6 +544,7 @@
             },
             "2023_1_atlantic_hurricane": {
                 "active": "true",
+                "downloads": "false",
                 "ui": {
                     "title": "2023 Atlantic Hurricane",
                     "href": "https://www.pmel.noaa.gov/saildrone-hurricane/2023/index.html",
