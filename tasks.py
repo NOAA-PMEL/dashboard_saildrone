@@ -120,7 +120,8 @@ def update_active_missions():
             if mission['active'] == "true":
                 active_missions.append(mid)
     # Keep the location data if the mission is not active
-    locations_df = locations_df[~locations_df.mission_id.isin(active_missions)]
+    if len(active_missions) > 0:
+        locations_df = locations_df[~locations_df.mission_id.isin(active_missions)]
     # Finished removing locations of active missions
 
     # Get the latest locations of active missions and append them
@@ -138,7 +139,8 @@ def update_active_missions():
                     new_locations_df = pd.concat([new_locations_df, df])
                 outeridx = outeridx + 1       
                 # Put in the new locations
-                locations_df = pd.concat([locations_df, new_locations_df])
+    if len(active_missions) > 0:
+        locations_df = pd.concat([locations_df, new_locations_df])
 
     logger.info('Updating locations of active missions...')
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
