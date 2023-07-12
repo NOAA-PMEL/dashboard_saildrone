@@ -354,7 +354,7 @@ def open_download_dialog(open_click, close_click):
                         html.Td(drone_down, style={"width":"25%"}), 
                         html.Td(dcc.Link('.csv', href=csv_url, target='_blank'), style={"width":"25%"}), 
                         html.Td(dcc.Link('.html', href=html_url, target='_blank'), style={"width":"25%"}), 
-                        html.Td(dcc.Link('.nc', href=netcdf_url, target='_blank'), style={"width":"25%"})
+                        html.Td(dcc.Link('.ncCF', href=netcdf_url, target='_blank'), style={"width":"25%"})
                     ]
                 )
             body_rows.append(row)
