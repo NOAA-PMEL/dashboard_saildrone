@@ -205,7 +205,7 @@ def layout(mission_id=None, **params):
                     ]),
                     ddk.Card(html.Div(mission_title, style={'fontSize': '1.5em'})),
                     logo_card,
-                    ddk.Card('To avoid overloading your browser, plots will be sub-sampled to 25,000 points regardless of the sampling frequncey you selected.'),
+                    ddk.Card('To avoid overloading your browser, plots will be sub-sampled to 25,000 points regardless of the sampling frequency you selected.'),
                     ddk.ControlCard(style=downloads, orientation='horizontal', children=[
                         ddk.ControlItem(
                             html.Button("Download", id='download', disabled=True)
@@ -885,13 +885,17 @@ def make_plots(set_progress, trigger, state_search):
     if plots_decimation > 0:
         order_by = '&orderByClosest("time/' + str(plots_decimation) + 'hours")'
     # hack for now because there's only one day
+    download_time_con_start = ''
     if plots_start_date is not None:
         order_by = order_by + '&time>=' + plots_start_date
+        download_time_con_start = '&time>=' + plots_start_date
     #if plot_end_date is not None and 'seatrial' not in cur_mission_id:
+    download_time_con_end = ''
     if plots_end_date is not None:
         if '00:00:00' in plots_end_date:
             plots_end_date = plots_end_date.replace('00:00:00', '23:59:59')
         order_by = order_by + '&time<=' + plots_end_date
+        download_time_con_end = '&time<=' + plots_end_date
     # TIMING
     # setup_over = time.perf_counter()
     # setup_time = setup_over - start
@@ -910,7 +914,7 @@ def make_plots(set_progress, trigger, state_search):
         full_query = '&trajectory="' + d_ts + '"'
         fq = urllib.parse.quote(full_query, safe='&()=:/')
         drone_url = url_base + req_var + q
-        download_urls[d_ts] = url_base + req_var + fq
+        download_urls[d_ts] = url_base + req_var + fq + download_time_con_start + download_time_con_end
         try:
             # DEBUG print('reading drone data from ' + drone_url)
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
