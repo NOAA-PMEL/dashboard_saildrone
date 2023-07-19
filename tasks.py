@@ -102,6 +102,7 @@ def load_missions():
     logger.info('Setting the mission locations...')
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
 
+
 # This will run periodically (see setup_periodic_tasks) to update only those missions which are "active" in the config
 @celery_app.task
 def update_active_missions():
