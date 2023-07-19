@@ -23,7 +23,7 @@ def setup_periodic_tasks(sender, **kwargs):
     # Update active missions once an hour at 32 minutes past
     sender.add_periodic_task(
          crontab(minute='32', hour='*'),
-         update_active_missions.s(),
+         load_missions.s(),
          name='Update the missions database for active missions'
     )
 
