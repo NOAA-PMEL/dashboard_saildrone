@@ -518,6 +518,22 @@
     "saildrone_2023":{
         "title": "2023 Saildrone Missions",
         "missions": {
+            "2023_3_SWFSC":{
+                "active": "true",
+                "downloads": "true",
+                "ui": {
+                    "title": "2023 SWFSC Survey",
+                    "href": "https://www.fisheries.noaa.gov/science-blog/2023-california-current-ecosystem-survey",
+                    "max_columns": "3",
+                    "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
+                },
+                "drones": {
+                    "1060.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1060_swfsc_2023",
+                        "label": "1060"
+                    }
+                }
+            },
             "2023_2_tpos": {
                 "active": "true",
                 "downloads": "true",
