@@ -531,6 +531,10 @@
                     "1060.0": {
                         "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1060_swfsc_2023",
                         "label": "1060"
+                    },
+                    "1096.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1096_swfsc_2023",
+                        "label": "1096"
                     }
                 }
             },
