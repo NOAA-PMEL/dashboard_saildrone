@@ -631,7 +631,7 @@ def make_trajectory_trace(trace_config, state_search):
             data_tables.append(d_df)
         except Exception as ex:
             print('Trajectory plot: exception getting data from ' + tr_drone_url)
-            print('e=' + ex)
+            print('e=' + str(ex))
             continue
 
     if len(data_tables) == 0:
