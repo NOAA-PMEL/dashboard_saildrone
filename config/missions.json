@@ -592,6 +592,10 @@
                         "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1045_hurricane_2023",
                         "label": "1045"
                     },
+                    "1057.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1057_hurricane_2023",
+                        "label": "1057"
+                    },
                     "1065.0": {
                         "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1065_hurricane_2023",
                         "label": "1065"
@@ -603,7 +607,11 @@
                     "1069.0": {
                         "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1069_hurricane_2023",
                         "label": "1069"
-                    }                   
+                    },
+                    "1083.0": {
+                        "url": "http://hazy.pmel.noaa.gov:8140/erddap/tabledap/sd1083_hurricane_2023",
+                        "label": "1083"
+                    }
                 }
             }
         }
