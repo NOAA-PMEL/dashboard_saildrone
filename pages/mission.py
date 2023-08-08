@@ -923,7 +923,7 @@ def make_plots(set_progress, trigger, state_search):
             set_progress((str(progress), str(max_progress)))
         except Exception as e:
             print('Timeseries plots: exception getting data from ' + drone_url)
-            print('e=', e)
+            print('e=', str(e))
             continue
     constants.redis_instance.hset("downloads", "urls", json.dumps(download_urls))
     if len(plot_data_tables) == 0:
@@ -1088,7 +1088,7 @@ def make_plots(set_progress, trigger, state_search):
     #         timings = str(len(original_order))+','+str(len(tsdrones))+','+str(setup_time)+','+str(data_read_time)+','+str(plotting_time)+','+str(total_time)+'\n'
     #         time_file.write(timings)
     # except Exception as e:
-    #     print(e)
+    #     print(str(e))
 
     print('At ' + str(ct) + ' plotting timeseries of ' + str(colnames) + ' for ' + str(tsdrones) + ' from ' + the_mission_config['ui']['title'])
     set_progress(("0", "0"))
