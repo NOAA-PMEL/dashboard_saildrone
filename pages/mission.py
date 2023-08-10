@@ -630,7 +630,7 @@ def make_trajectory_trace(trace_config, state_search):
             d_df = pd.read_csv(tr_drone_url, skiprows=[1])
             data_tables.append(d_df)
         except Exception as ex:
-            print('Trajectory plot: exception getting data from ' + tr_drone_url)
+            print('Trajectory plot: exception getting data from url: ' + tr_drone_url)
             print('e=' + str(ex))
             continue
 
