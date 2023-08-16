@@ -528,6 +528,10 @@
                     "logo": "https://www.fisheries.noaa.gov/themes/custom/noaa_components/images/150_Ribbon.png"
                 },
                 "drones": {
+                    "1048.0": {
+                        "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1048_swfsc_2023",
+                        "label": "1048"
+                    },
                     "1060.0": {
                         "url": "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1060_swfsc_2023",
                         "label": "1060"
