@@ -10,6 +10,8 @@ import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
 from celery import Celery
 
+# Restarting on Tue Aug 29 19:39:35 UTC 2023 because background plots were not working
+
 celery_app = constants.celery_app
 background_callback_manager = CeleryManager(celery_app)
 
