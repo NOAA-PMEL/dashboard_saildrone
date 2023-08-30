@@ -11,10 +11,6 @@ redis_instance = redis.StrictRedis.from_url(
     os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 )
 
-celery_app = Celery('tasks', broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
-
-import tasks # necessary everything celery uses to be imported here.
-
 ESRI_API_KEY = os.environ.get('ESRI_API_KEY')
 
 locations_table = 'locations'

@@ -16,17 +16,6 @@ import constants
 import db
 
 logger = get_task_logger(__name__)
-celery_app = constants.celery_app
-
-@celery_app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    # Update active missions once an hour at 32 minutes past
-    sender.add_periodic_task(
-         crontab(minute='32', hour='*'),
-         load_missions.s(),
-         name='Update the missions database for active missions'
-    )
-
 
 def flush():
     constants.redis_instance.flushall()
@@ -81,7 +70,6 @@ def update_mission(mid, mission):
     return full_df
 
 # Run this once from the workspace before deploying the application
-@celery_app.task
 def load_missions():
     with open('config/missions.json') as missions_config:
         config_json = json.load(missions_config)
@@ -102,47 +90,4 @@ def load_missions():
     logger.info('Setting the mission locations...')
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
 
-
-# This will run periodically (see setup_periodic_tasks) to update only those missions which are "active" in the config
-@celery_app.task
-def update_active_missions():
-    with open('config/missions.json') as missions_config:
-        config_json = json.load(missions_config)
-    collections = config_json['collections']
-
-    # remove locations for active misions
-    # all of the currently saved locations
-    locations_df = db.get_locations()
-    active_missions = []
-    for collection in collections:
-        logger.info('Processing missions for ' + collection)
-        member = collections[collection]      
-        for idx, mid in enumerate(member['missions']):
-            mission = member['missions'][mid]
-            if mission['active'] == "true":
-                active_missions.append(mid)
-    # Keep the location data if the mission is not active
-    if len(active_missions) > 0:
-        locations_df = locations_df[~locations_df.mission_id.isin(active_missions)]
-    # Finished removing locations of active missions
-
-    # Get the latest locations of active missions and append them
-    outeridx = 0
-    for collection in collections:
-        logger.info('Processing missions for ' + collection)
-        member = collections[collection]      
-        for idx, mid in enumerate(member['missions']):
-            mission = member['missions'][mid]
-            if mission['active'] == "true":
-                df = update_mission(mid, mission)
-                if outeridx == 0:
-                    new_locations_df = df
-                else:
-                    new_locations_df = pd.concat([new_locations_df, df])
-                outeridx = outeridx + 1       
-                # Put in the new locations
-    if len(active_missions) > 0:
-        locations_df = pd.concat([locations_df, new_locations_df])
-
-    logger.info('Updating locations of active missions...')
-    locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
+    
