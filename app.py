@@ -9,6 +9,7 @@ import constants
 import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
 import celery
+import tasks
 from celery import Celery
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
@@ -122,7 +123,7 @@ def load_missions():
         member = collections[collection]     
         for idx, mid in enumerate(member['missions']):
             mission = member['missions'][mid]
-            df = update_mission(mid, mission)
+            df = tasks.update_mission(mid, mission)
             if outeridx == 0:
                 locations_df = df
             else:
@@ -131,6 +132,7 @@ def load_missions():
              
     logger.info('Setting the mission locations...')
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
