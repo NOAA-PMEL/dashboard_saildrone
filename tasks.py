@@ -7,7 +7,6 @@ from celery import Celery
 from sdig.erddap.info import Info
 import urllib.parse
 import celery
-from celery.utils.log import get_task_logger
 
 from random import randrange
 
@@ -69,25 +68,6 @@ def update_mission(mid, mission):
     return full_df
 
 # Run this once from the workspace before deploying the application
-@celery.task
-def load_missions():
-    with open('config/missions.json') as missions_config:
-        config_json = json.load(missions_config)
-    collections = config_json['collections']
-    outeridx = 0 
-    for collection in collections:
-        logger.info('Processing missions for ' + collection)
-        member = collections[collection]     
-        for idx, mid in enumerate(member['missions']):
-            mission = member['missions'][mid]
-            df = update_mission(mid, mission)
-            if outeridx == 0:
-                locations_df = df
-            else:
-                locations_df = pd.concat([locations_df, df])
-            outeridx = outeridx + 1
-             
-    logger.info('Setting the mission locations...')
-    locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
+
 
     

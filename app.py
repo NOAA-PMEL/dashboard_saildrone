@@ -10,7 +10,7 @@ import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
 from celery import Celery
 from celery.schedules import crontab
-import tasks
+from celery.utils.log import get_task_logger
 
 # Restarting on Tue Aug 29 19:39:35 UTC 2023 because background plots were not working
 celery_app = Celery('bgtasks', broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
@@ -105,10 +105,31 @@ def setup_periodic_tasks(sender, **kwargs):
     # Update all missions once an hour at 32 minutes past
     sender.add_periodic_task(
          crontab(minute='0,15,30,45', hour='*'),
-         tasks.load_missions.s(),
+         load_missions.s(),
          name='Update the missions database for all missions'
     )
 
+
+@celery.task
+def load_missions():
+    with open('config/missions.json') as missions_config:
+        config_json = json.load(missions_config)
+    collections = config_json['collections']
+    outeridx = 0 
+    for collection in collections:
+        logger.info('Processing missions for ' + collection)
+        member = collections[collection]     
+        for idx, mid in enumerate(member['missions']):
+            mission = member['missions'][mid]
+            df = update_mission(mid, mission)
+            if outeridx == 0:
+                locations_df = df
+            else:
+                locations_df = pd.concat([locations_df, df])
+            outeridx = outeridx + 1
+             
+    logger.info('Setting the mission locations...')
+    locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
