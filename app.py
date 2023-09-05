@@ -8,6 +8,7 @@ import dateutil
 import constants
 import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
+import celery
 from celery import Celery
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
