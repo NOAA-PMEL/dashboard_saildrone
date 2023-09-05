@@ -20,6 +20,8 @@ background_callback_manager = CeleryManager(celery_app)
 
 version = 'v2.1'
 
+logger = get_task_logger(__name__)
+
 config_json = None
 with open('config/missions.json') as missions_config:
     config_json = json.load(missions_config)
