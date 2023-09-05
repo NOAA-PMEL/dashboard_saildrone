@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import json
 from celery import Celery
-from celery.schedules import crontab
 from sdig.erddap.info import Info
 import urllib.parse
 
