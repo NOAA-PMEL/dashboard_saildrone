@@ -6,7 +6,7 @@ import json
 from celery import Celery
 from sdig.erddap.info import Info
 import urllib.parse
-
+import celery
 from celery.utils.log import get_task_logger
 
 from random import randrange
@@ -69,6 +69,7 @@ def update_mission(mid, mission):
     return full_df
 
 # Run this once from the workspace before deploying the application
+@celery.task
 def load_missions():
     with open('config/missions.json') as missions_config:
         config_json = json.load(missions_config)
