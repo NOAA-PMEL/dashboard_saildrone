@@ -9,6 +9,7 @@ import urllib.parse
 import celery
 from celery import Celery
 from celery.schedules import crontab
+from celery.utils.log import get_task_logger
 
 import constants
 import db
