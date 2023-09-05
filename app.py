@@ -108,13 +108,13 @@ app.layout = ddk.App([
 def setup_periodic_tasks(sender, **kwargs):
     # Update all missions once an hour at 32 minutes past
     sender.add_periodic_task(
-         crontab(minute='0,15,30,45', hour='*'),
+         crontab(minute='32', hour='*'),
          load_missions.s(),
          name='Update the missions database for all missions'
     )
 
 
-@celery.task
+@celery_app.task
 def load_missions():
     with open('config/missions.json') as missions_config:
         config_json = json.load(missions_config)
