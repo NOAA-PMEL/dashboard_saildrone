@@ -7,13 +7,15 @@ from celery import Celery
 from sdig.erddap.info import Info
 import urllib.parse
 import celery
-from celery.utils.log import get_task_logger
-from random import randrange
+from celery import Celery
+from celery.schedules import crontab
 
 import constants
 import db
 
 logger = get_task_logger(__name__)
+
+celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
 
 def flush():
     constants.redis_instance.flushall()
@@ -69,7 +71,7 @@ def update_mission(mid, mission):
 
 # Run this once from the workspace before deploying the application
 
-
+@celery_app.task
 def load_missions():
     with open('config/missions.json') as missions_config:
         config_json = json.load(missions_config)
@@ -89,3 +91,13 @@ def load_missions():
                 
     logger.info('Setting the mission locations...')
     locations_df.to_sql(constants.locations_table, constants.postgres_engine, if_exists='replace', index=False)  
+
+
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    # Update all missions once an hour at 32 minutes past
+    sender.add_periodic_task(
+         crontab(minute='0,10,20,40,50', hour='*'),
+         load_missions.s(),
+         name='Update the missions database for all missions'
+    )

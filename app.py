@@ -8,14 +8,9 @@ import dateutil
 import constants
 import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
-import celery
 import tasks
-from celery import Celery
-from celery.schedules import crontab
 
-# Restarting on Tue Aug 29 19:39:35 UTC 2023 because background plots were not working
-celery_app = Celery('bgtasks', broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
-background_callback_manager = CeleryManager(celery_app)
+background_callback_manager = CeleryManager(tasks.celery_app)
 
 version = 'v2.1'
 
@@ -100,21 +95,6 @@ app.layout = ddk.App([
     ]),
 
 ])
-
-
-@celery_app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    # Update all missions once an hour at 32 minutes past
-    sender.add_periodic_task(
-         crontab(minute='0,10,20,40,50', hour='*'),
-         load_missions.s(),
-         name='Update the missions database for all missions'
-    )
-
-
-@celery_app.task
-def load_missions():
-    tasks.load_missions()
 
 
 if __name__ == '__main__':
