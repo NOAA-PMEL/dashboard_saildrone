@@ -7,7 +7,7 @@ from celery import Celery
 from sdig.erddap.info import Info
 import urllib.parse
 import celery
-
+from celery.utils.log import get_task_logger
 from random import randrange
 
 import constants
