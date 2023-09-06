@@ -20,6 +20,23 @@ logger = get_task_logger(__name__)
 celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
 background_callback_manager = CeleryManager(celery_app)
 
+
+@celery_app.task
+def run_update():
+    tasks.load_missions()
+
+
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    logger.debug('Setup called.')
+    # Update all missions once an hour at 32 minutes past
+    sender.add_periodic_task(
+         crontab(minute='0,10,20,40,50', hour='*'),
+         run_update.s(),
+         name='Update missions'
+    )
+
+
 version = 'v2.1'
 
 config_json = None
@@ -102,21 +119,6 @@ app.layout = ddk.App([
     ]),
 
 ])
-
-
-@celery_app.task
-def run_update():
-    tasks.load_missions()
-
-
-@celery_app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    # Update all missions once an hour at 32 minutes past
-    sender.add_periodic_task(
-         crontab(minute='0,10,20,40,50', hour='*'),
-         run_update.s(),
-         name='Update missions'
-    )
 
 
 if __name__ == '__main__':
