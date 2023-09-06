@@ -1,3 +1,3 @@
 web=1
-worker-default=1
+worker-default=12
 worker-beat=1

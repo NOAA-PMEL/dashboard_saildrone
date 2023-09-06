@@ -22,7 +22,10 @@ celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 def run_update():
     tasks.load_missions()
 
-
+#
+# !!!!!!!!!!
+# Changing from on_after_finalize from on_after_config was the trick to getting
+# the update task scheduled even though it was registered
 @celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     logger.debug('Setup called.')
