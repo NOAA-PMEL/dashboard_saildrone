@@ -8,6 +8,10 @@ from sdig.erddap.info import Info
 import urllib.parse
 import constants
 import db
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
+
 
 def flush():
     constants.redis_instance.flushall()
