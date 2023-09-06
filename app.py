@@ -17,10 +17,6 @@ from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
 
-celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
-background_callback_manager = CeleryManager(celery_app)
-
-
 @celery_app.task
 def run_update():
     tasks.load_missions()
@@ -36,6 +32,9 @@ def setup_periodic_tasks(sender, **kwargs):
          name='Update missions'
     )
 
+
+celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+background_callback_manager = CeleryManager(celery_app)
 
 version = 'v2.1'
 
