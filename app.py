@@ -10,8 +10,17 @@ import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
 import tasks
 
-version = 'v2.1'
+import celery
+from celery import Celery
+from celery.schedules import crontab
+from celery.utils.log import get_task_logger
 
+logger = get_task_logger(__name__)
+
+celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+background_callback_manager = CeleryManager(celery_app)
+
+version = 'v2.1'
 
 config_json = None
 with open('config/missions.json') as missions_config:
@@ -40,7 +49,7 @@ for collection in sorted(collections, reverse=True):
     item.children=member_children
     menu.append(item)
 
-app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=tasks.background_callback_manager, external_stylesheets=[dbc.themes.BOOTSTRAP]) 
+app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=background_callback_manager, external_stylesheets=[dbc.themes.BOOTSTRAP]) 
 server = app.server  # expose server variable for Procfile
 
 app.layout = ddk.App([
@@ -93,6 +102,20 @@ app.layout = ddk.App([
     ]),
 
 ])
+
+
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    # Update all missions once an hour at 32 minutes past
+    sender.add_periodic_task(
+         crontab(minute='0,10,20,40,50', hour='*'),
+         run_update.s(),
+         name='Update the missions database for all missions'
+    )
+
+
+def run_update():
+    tasks.load_missions()
 
 
 if __name__ == '__main__':
