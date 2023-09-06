@@ -17,12 +17,13 @@ from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
 
+celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
 @celery_app.task
 def run_update():
     tasks.load_missions()
 
 
-@celery_app.on_after_configure.connect
+@celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     logger.debug('Setup called.')
     # Update all missions once an hour at 32 minutes past
@@ -32,8 +33,6 @@ def setup_periodic_tasks(sender, **kwargs):
          name='Update missions'
     )
 
-
-celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
 background_callback_manager = CeleryManager(celery_app)
 
 version = 'v2.1'
