@@ -1,3 +1,4 @@
+from dash import CeleryManager
 import os
 import redis
 import pandas as pd
