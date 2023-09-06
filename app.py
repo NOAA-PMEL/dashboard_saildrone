@@ -31,7 +31,7 @@ def setup_periodic_tasks(sender, **kwargs):
     logger.debug('Setup called.')
     # Update all missions once an hour at 32 minutes past
     sender.add_periodic_task(
-         crontab(minute='0,10,20,40,50', hour='*'),
+         crontab(minute='32', hour='*'),
          run_update.s(),
          name='Update missions'
     )
