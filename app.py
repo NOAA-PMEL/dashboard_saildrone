@@ -114,6 +114,7 @@ def setup_periodic_tasks(sender, **kwargs):
     )
 
 
+@celery_app.task
 def run_update():
     tasks.load_missions()
 
