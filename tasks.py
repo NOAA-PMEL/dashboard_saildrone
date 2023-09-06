@@ -17,6 +17,7 @@ import db
 logger = get_task_logger(__name__)
 
 celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+background_callback_manager = CeleryManager(celery_app)
 
 def flush():
     constants.redis_instance.flushall()

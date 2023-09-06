@@ -10,8 +10,6 @@ import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
 import tasks
 
-background_callback_manager = CeleryManager(tasks.celery_app)
-
 version = 'v2.1'
 
 
@@ -42,7 +40,7 @@ for collection in sorted(collections, reverse=True):
     item.children=member_children
     menu.append(item)
 
-app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=background_callback_manager, external_stylesheets=[dbc.themes.BOOTSTRAP]) 
+app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=tasks.background_callback_manager, external_stylesheets=[dbc.themes.BOOTSTRAP]) 
 server = app.server  # expose server variable for Procfile
 
 app.layout = ddk.App([
