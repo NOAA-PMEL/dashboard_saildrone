@@ -104,19 +104,19 @@ app.layout = ddk.App([
 ])
 
 
+@celery_app.task
+def run_update():
+    tasks.load_missions()
+
+
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Update all missions once an hour at 32 minutes past
     sender.add_periodic_task(
          crontab(minute='0,10,20,40,50', hour='*'),
          run_update.s(),
-         name='Update the missions database for all missions'
+         name='Update missions'
     )
-
-
-@celery_app.task
-def run_update():
-    tasks.load_missions()
 
 
 if __name__ == '__main__':
