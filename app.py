@@ -1,4 +1,5 @@
-from dash import Dash, dcc, html, page_container, Input, Output, CeleryManager
+from dash import Dash, dcc, html, page_container, Input, Output, CeleryManager, DiskcacheManager
+
 import dash_design_kit as ddk
 import plotly.express as px
 import json
@@ -10,6 +11,8 @@ import dash_bootstrap_components as dbc
 from sdig.erddap.info import Info
 import tasks
 
+import diskcache
+
 import celery
 from celery import Celery
 from celery.schedules import crontab
@@ -17,7 +20,17 @@ from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
 
+
 celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+if os.environ.get("DASH_ENTERPRISE_ENV") == "WORKSPACE":
+    # For testing...
+    # import diskcache
+    cache = diskcache.Cache("./cache")
+    background_callback_manager = DiskcacheManager(cache)
+else:
+    # For production...
+    background_callback_manager = CeleryManager(celery_app)
+
 
 @celery_app.task
 def run_update():
@@ -35,8 +48,6 @@ def setup_periodic_tasks(sender, **kwargs):
          run_update.s(),
          name='Update missions'
     )
-
-background_callback_manager = CeleryManager(celery_app)
 
 version = 'v2.1'
 
