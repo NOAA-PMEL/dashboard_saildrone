@@ -550,7 +550,7 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
     Input('trace-trigger', 'data'),
 ], [
     State('url', 'search')
-], prevent_initial_call=True)
+], prevent_initial_call=True, background=True)
 def make_trajectory_trace(trace_config, state_search):
     if trace_config is None:
         raise dash.exceptions.PreventUpdate

@@ -18,17 +18,17 @@ from celery.utils.log import get_task_logger
 logger = get_task_logger(__name__)
 
 celery_app = Celery(broker=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"), backend=os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+
 @celery_app.task
 def run_update():
     tasks.load_missions()
 
 #
 # !!!!!!!!!!
-# Changing from on_after_finalize from on_after_config was the trick to getting
-# the update task scheduled even though it was registered
+# Changing to on_after_finalize from on_after_config was the trick to getting
+# the update task scheduled. It was being registered, but never scheduled.
 @celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
-    logger.debug('Setup called.')
     # Update all missions once an hour at 32 minutes past
     sender.add_periodic_task(
          crontab(minute='32', hour='*'),
@@ -90,6 +90,16 @@ app.layout = ddk.App([
         ]
     ),            
     ddk.SidebarCompanion(style={'margin-left': '-25px'}, children=[
+        # ddk.PageHeader(children=[
+        #     html.Div('Parts of the US government are closed. This site will not be updated; however, NOAA websites and social media channels necessary to protect lives and property will be maintained. See ', style={'display':'inline-block'}), 
+        #     html.Div('.', style={'display':'inline-block', 'visibility': 'hidden'}),
+        #     html.A('www.weather.gov', href='https://www.weather.gov', style={'display':'inline-block'}), 
+        #     html.Div('.', style={'display':'inline-block', 'visibility': 'hidden'}),
+        #     html.Div(' for critical weather information. To learn more, see ', style={'display': 'inline-block'}), 
+        #     html.Div('.', style={'display':'inline-block', 'visibility': 'hidden'}),
+        #     html.A('www.commerce.gov', href='https://www.commerce.gov', style={'display':'inline-block'}), 
+        #     html.Div('.', style={'display':'inline-block', 'visibility': 'hidden'}),
+        #     html.Div('.', style={'display':'inline-block'})], style={'display':'inline-block'}),
         page_container,
         ddk.PageFooter(children=[                    
             html.Hr(),
