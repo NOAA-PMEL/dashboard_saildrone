@@ -197,10 +197,10 @@
                 "active": "true",
                 "downloads": "false",
                 "ui": {
-                    "title": "Antarctica Circumnavigation",
+                    "title": "2019 Antarctica Circumnavigation",
                     "href": "https://www.noaa.gov/news/saildrone-is-first-to-circumnavigate-antarctica-in-search-for-carbon-dioxide#:~:text=It%20was%20an%20audacious%20idea,said%20NOAA%20oceanographer%20Adrienne%20Sutton.",
                     "max_columns": "3",
-                    "logo": "AOML_PMEL.png"
+                    "logo": "noaa-mobile-rgb-withspace-2022.png"
                 },
                 "drones":{
                     "1020.0": {
