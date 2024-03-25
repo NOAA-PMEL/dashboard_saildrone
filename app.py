@@ -90,7 +90,7 @@ app.layout = ddk.App([
         children=[
             html.A(
                 ddk.Logo(
-                    src=app.get_asset_url("PMEL_50th_Logo_vFINAL_emblem.png")
+                    src=app.get_asset_url("pmel-emblem-rgb-2022.png")
                 ), href='https://www.pmel.noaa.gov/'
             ),
             dcc.Link(
