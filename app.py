@@ -135,7 +135,7 @@ app.layout = ddk.App([
                     dcc.Link(' Disclaimer |', href='https://www.noaa.gov/disclaimer',style={'font-size': '.8em'}),
                     dcc.Link(' Accessibility', href='https://www.pmel.noaa.gov/accessibility',style={'font-size': '.8em'})
                 ]),
-                ddk.Block(width=.7,children=[html.Img(src=app.get_asset_url('50th_webheader_720px__a.png'), style={'width': '600px'})])
+                ddk.Block(width=.7,children=[html.Img(src=app.get_asset_url('pmel-lockup-rgb-2022.png'), style={'height': '90px'})])
             ])
         ])
     ]),
