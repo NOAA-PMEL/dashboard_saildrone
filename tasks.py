@@ -9,7 +9,9 @@ import urllib.parse
 import constants
 import db
 from celery.utils.log import get_task_logger
+import ssl
 
+ssl._create_default_https_context = ssl._create_unverified_context
 logger = get_task_logger(__name__)
 
 

@@ -31,8 +31,8 @@ connection_string = "postgresql+pg8000" + os.environ.get(
 postgres_engine = create_engine(connection_string, poolclass=NullPool)
 
 if os.environ.get("DASH_ENTERPRISE_ENV") == "WORKSPACE":
-    base = '/Workspaces/view/saildrone/'
-    assets = '/Workspaces/view/saildrone/assets/'
+    base = '/workspace/view/workspace-saildrone/'
+    assets = base + '/assets/'
 else:
     base = '/saildrone/'
     assets = '/saildrone/assets/'
