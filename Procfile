@@ -1,5 +1,3 @@
-worker-default: celery -A app:celery_app worker --loglevel DEBUG --concurrency=12
+workers: celery -A app:celery_app worker --loglevel DEBUG --concurrency=6
 worker-beat: celery -A app:celery_app beat
-web: gunicorn app:server --workers 10
-
-
+web: gunicorn app:server --workers 5
