@@ -10,6 +10,7 @@ import constants
 import db
 from celery.utils.log import get_task_logger
 import ssl
+import urllib.parse
 
 ssl._create_default_https_context = ssl._create_unverified_context
 logger = get_task_logger(__name__)
@@ -20,6 +21,7 @@ def flush():
 
 
 def update_mission(mid, mission):
+   
     logger.debug('Pulling locations for mission ' + str(mission['ui']['title']))
          
     start_dates = []
@@ -36,6 +38,12 @@ def update_mission(mid, mission):
         depth_name, dsg_var = info.get_dsg_info()
         dsg_id = dsg_var[info.get_dsg_type()]
         base_url = drone['url'] + '.csv?'
+        time_url = base_url + urllib.parse.quote_plus('time&orderByMinMax("time")')
+        print(time_url)
+        tdf = pd.read_csv(time_url, skiprows=[1])
+        print(tdf)
+        start_date = tdf['time'].min()
+        end_date = tdf['time'].max()
         req_vars = 'latitude,longitude,time,' + dsg_id
         query = '&orderByClosest("time,1day")&'+dsg_id+'="'+d+'"'
         q = urllib.parse.quote(query)
@@ -50,6 +58,10 @@ def update_mission(mid, mission):
         df[dsg_id] = df[dsg_id].astype(str)
         drone_vars, d_long_names, d_units, standard_names, var_types = info.get_variables()
         drones[d]['variables'] = drone_vars
+        drones[d]['start_date'] = start_date
+        start_dates.append(start_date)
+        drones[d]['end_date'] = end_date
+        end_dates.append(end_date)
         depth_name, dsg_id = info.get_dsg_info()
         dsg_ids.append(dsg_id['trajectory'])
         long_names = {**long_names, **d_long_names}
@@ -63,6 +75,10 @@ def update_mission(mid, mission):
     long_names = dict(sorted(long_names.items(), key=lambda item: item[1]))
     mission['long_names'] = long_names
     mission['units'] = units
+    start_dates.sort()
+    end_dates.sort()
+    mission['start_date'] = start_dates[0]
+    mission['end_date'] = end_dates[-1]
     constants.redis_instance.hset("mission", mid, json.dumps(mission)) 
     full_df = pd.concat(mission_dfs).reset_index()
     return full_df
