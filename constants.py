@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 from celery import Celery
 import os
+import plotly.graph_objects as go
  
 
 # Define a redis instance. This definition will work both locally and with an app deployed to DE:
@@ -36,3 +37,25 @@ if os.environ.get("DASH_ENTERPRISE_ENV") == "WORKSPACE":
 else:
     base = '/saildrone/'
     assets = '/saildrone/assets/'
+
+
+def get_blank(message):
+    blank_graph = go.Figure(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
+    blank_graph.add_trace(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
+    blank_graph.update_traces(visible=False)
+    blank_graph.update_layout(
+        xaxis={"visible": False},
+        yaxis={"visible": False},
+        annotations=[
+            {
+                "text": message,
+                "xref": "paper",
+                "yref": "paper",
+                "showarrow": False,
+                "font": {
+                    "size": 14
+                }
+            },
+        ]
+    )
+    return blank_graph

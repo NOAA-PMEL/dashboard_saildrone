@@ -1,809 +1,297 @@
 import dash
-from dash import html, dcc, callback, exceptions, Input, Output, State, CeleryManager, DiskcacheManager, ctx
-import dash_design_kit as ddk
+from dash import dcc, html, callback, Output, Input, State, no_update, ctx
 import plotly.graph_objects as go
 import plotly.express as px
-import json
-import constants
-import db
-import urllib
-from itertools import filterfalse
-import pandas as pd
+import dash_design_kit as ddk
 from plotly.subplots import make_subplots
-import datetime
+
+import pandas as pd
+import json
+
+import db
+import constants
+from sdig.util import zc
+
+from tsdownsample import MinMaxLTTBDownsampler
 import numpy as np
-import sdig.util.zc as zc
-import time
-import dash_bootstrap_components as dbc
 
-
-height_of_row = 345
-short_map_height = 450
-tall_map_height = 800
-
-line_rgb = 'rgba(.04,.04,.04,.05)'
+row_height = 450
+line_rgb = 'rgba(.04,.04,.04,.2)'
 plot_bg = 'rgba(1.0, 1.0, 1.0 ,1.0)'
 
-def get_blank(message):
-    blank_graph = go.Figure(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
-    blank_graph.add_trace(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
-    blank_graph.update_traces(visible=False)
-    blank_graph.update_layout(
-        xaxis={"visible": False},
-        yaxis={"visible": False},
-        annotations=[
-            {
-                "text": message,
-                "xref": "paper",
-                "yref": "paper",
-                "showarrow": False,
-                "font": {
-                    "size": 14
-                }
-            },
-        ]
-    )
-    return blank_graph
-blank_graph = get_blank('Pick one or more drones<br>Pick a variable')
-
-dash.register_page(__name__, path="/mission", path_template='/mission/<mission_id>')
+dash.register_page(__name__, path="/mission")
 
 def layout(mission_id=None, **params):
-    if mission_id is None:
-        return html.Div('')
-    mission  = json.loads(constants.redis_instance.hget("mission", mission_id))
-    df = db.get_mission_locations(mission_id, mission['dsg_id'])
-    
-    mode = 'lines'
-    if 'mode' in params:
-        mode = params['mode']
-
-    q_plots_per = 'all'
-    if 'plots_per' in params:
-        q_plots_per = params['plots_per']
-
-    if q_plots_per == 'one':
-        check_plots_per = ['one']
-    else:
-        check_plots_per = []
-
-    req_drones = []
-    if 'drone' in params:
-        req_drones = params['drone']
-
-    trace_decimation = 24
-    if 'trace_decimation' in params:
-        trace_decimation_params = params['trace_decimation']
-        trace_decimation = trace_decimation_params
-
-    plots_decimation = 24
-    if 'plots_decimation' in params:
-        plots_decimation_params = params['plots_decimation']
-        plots_decimation = plots_decimation_params
-
-    trace_variable = None
-    if 'trace_variable' in params:
-        trace_variable_params = params['trace_variable']
-        trace_variable = trace_variable_params
-
-    plot_variables = []
-    if 'timeseries' in params:
-        plot_variables = params['timeseries']
-        if isinstance(plot_variables, str):
-            plot_variables = [plot_variables]
-
-    if 'start_date' in params:
-        set_start_date = params['start_date']
-    else:
-        set_start_date = df.time.min()
-        
-    # Make sure you cover the rest of the last day.
-
-    if 'end_date' in params:
-        set_end_date = params['end_date']
-    else:
-        set_end_date = df.time.max()
-        sed = datetime.datetime.strptime(set_end_date, '%Y-%m-%dT%H:%M:%SZ')
-        sed = sed + datetime.timedelta(hours=36)
-        set_end_date = sed.isoformat() + 'Z'
-        
-    mission_start_date = df.time.min()
-    mission_end_date = df.time.max()
-    ed = datetime.datetime.strptime(mission_end_date, '%Y-%m-%dT%H:%M:%SZ')
-    ed = ed + datetime.timedelta(hours=36)
-    mission_end_date = ed.isoformat() + 'Z'
-
-    if 'columns' in params:
-        set_max_columns = params['columns']
-    else:
-        if 'max_columns' in mission['ui']:
-            set_max_columns = str(mission['ui']['max_columns'])
-        else:
-            set_max_columns = 4
-
-    # Sort dict by value
-    variable_options = []
-    m_long_names = mission['long_names']
-    for var in m_long_names:
-        variable_options.append({'label':m_long_names[var], 'value': var})
-
-    drones_selected = []
-    drone_options = []
-    for drone in mission['drones']:
-        drone_options.append({'label': mission['drones'][drone]['label'], 'value': drone})
-        drones_selected.append(drone)
-
-    if len(req_drones) == 0:
-        req_drones = drones_selected
-
-    logo_card = []
-    logos = []
-    downloads = {'display': 'none'}
-    if 'downloads' in mission:
-        if mission['downloads'] == 'true':
-            downloads = {'display': ''}
-    if 'logo' in mission['ui']:
-        logo_img = mission['ui']['logo']
+    layout = ''
+    if mission_id is not None:
+        constants.redis_instance.hset('mission', 'current_mission', mission_id)
+        mission_drones = []
+        mission_variables = []
+        variables = []
+        mission_config = json.loads(constants.redis_instance.hget("mission", mission_id))
+        for drone in mission_config['drones']:
+            drone_cf = mission_config['drones'][drone]
+            mission_drones.append({'label': drone_cf['label'], 'value': drone})
+            variables = variables + mission_config['drones'][drone]['variables']
+        variables = list(set(variables))
+        variables.sort()
+        logo_img = mission_config['ui']['logo']
+        start_date = mission_config['start_date']
+        end_date = mission_config['end_date']
+        long_names = mission_config['long_names']
         if not logo_img.startswith("http"):
             logo_img = constants.assets + logo_img
-        style = {'max-width':'100%'}
-        if 'logo_bgcolor' in mission['ui']:
-            style['background-color'] = mission['ui']['logo_bgcolor']
-        logo = html.A(
-                html.Img(style=style,
-                    src=logo_img
-                )
-            )
-        if 'href' in mission['ui']:
-            logo.href = mission['ui']['href']
-            logo.target='_blank'
-        logos.append(logo)
-    if 'link_text' in mission['ui'] and 'href' in mission['ui']:
-        text = html.A(mission['ui']['link_text'], href = mission['ui']['href'], target='_blank')
-        logos.append(text)
-    if len(logos) > 0:
-        logo_card = ddk.Card(children=logos,)
-    df.sort_values(['trajectory', 'time'], inplace=True)
-    mission_title = mission['ui']['title']
-    drone_map = px.scatter_geo(df, lat='latitude', lon='longitude', color='trajectory', fitbounds='locations', hover_data=['time'], color_discrete_sequence=px.colors.qualitative.Dark24)
-    drone_map.update_geos(
-        resolution=50,
-        showcoastlines=True, coastlinecolor="Black",
-        showland=True, landcolor="Tan",
-        showocean=True, oceancolor="LightBlue",
-    )
-    drone_map.update_layout(margin={"r":0,"t":60,"l":0,"b":0}, legend_title_text='Drone')
-    if mission_id is None:
-        raise exceptions.PageError
-    else:
-        layout = ddk.Block([
-            ddk.Row([
-                ddk.Block(width=.4, children=[
-                    ddk.Card(children=[
-                        ddk.CardHeader(title='Current Daily Location', children=[
-                            dcc.Dropdown(
-                                id='drone', 
-                                multi=True, 
-                                clearable=True, 
-                                options=drone_options, 
-                                placeholder='Select one or more drones to plot.',
-                                value=req_drones)
+        for var in variables:
+            mission_variables.append({'label': long_names[var], 'value': var})
+        mission_variables = sorted(mission_variables, key=lambda d: d['label'])
+        mission_variables_value = variables[0]
+        layout = [
+            ddk.Card(width=1, children=[
+                ddk.CardHeader(title=mission_config['ui']['title'], children=[
+                    html.Img(src=logo_img, style={'height': '65px', 'padding-bottom': '10px'}),
+                ]),
+                ddk.Block(width=.3, children=[
+                    ddk.ControlCard(width=1, children=[
+                        ddk.ControlItem(label='Drones:', children=[
+                            dcc.Dropdown(id='drones', options=mission_drones, multi=True)
                         ]),
-                        ddk.Graph(id='drone-location', figure=drone_map),
-                    ]),
-
-                ]),
-                ddk.Block(width=.2, children=[
-                    ddk.Card(children=[
-                        dcc.DatePickerRange(
-                            id='date-range',
-                            min_date_allowed=mission_start_date,
-                            max_date_allowed=mission_end_date,
-                            start_date=set_start_date,
-                            end_date=set_end_date
-                        )
-                    ]),
-                    ddk.Card(html.Div(mission_title, style={'fontSize': '1.5em'})),
-                    logo_card,
-                    ddk.Card('To avoid overloading your browser, plots will be sub-sampled to 25,000 points regardless of the sampling frequency you selected.'),
-                    ddk.ControlCard(style=downloads, orientation='horizontal', children=[
-                        ddk.ControlItem(
-                            html.Button("Download", id='download', disabled=True)
-                        )
-                    ])
-                ]),
-                ddk.Block(width=.4,children=[
-                    ddk.Card(children=[
-                        ddk.ControlCard(orientation='horizontal', children=[
-                            ddk.ControlItem(children=[
-                                dcc.Dropdown(id='trace-variable', 
-                                    multi=False, 
-                                    clearable=True, 
-                                    options=variable_options, 
-                                    placeholder='Variable for trajectory plot',
-                                    value=trace_variable
-                                )],
-                            ),
-                            ddk.ControlItem(children=[
-                                dcc.Dropdown(id='trace-decimation',
-                                    options=[
-                                        {'label': '1 sample/24 hours', 'value': '24'},
-                                        {'label': '1 sample/18 hours', 'value': '18'},
-                                        {'label': '1 sample/15 hours', 'value': '15'},
-                                        {'label': '1 sample/12 hours', 'value': '12'},
-                                        {'label': '1 sample/9 hours', 'value': '9'},
-                                        {'label': '1 sample/6 hours', 'value': '6'},
-                                        {'label': '1 sample/3 hours', 'value': '3'},
-                                        {'label': 'No sub-sampling', 'value': '0'},
-                                    ],
-                                    multi=False,
-                                    clearable=False,
-                                    value=trace_decimation
-                                )],
+                        ddk.ControlItem(label="Time Range:", children=[
+                            dcc.DatePickerRange(
+                                id='date-range',
+                                min_date_allowed=start_date,
+                                max_date_allowed=end_date,
+                                start_date=start_date,
+                                end_date=end_date
                             )
-                        ]),
-                        dcc.Loading(ddk.Graph(id='trajectory-map'))
-                    ])   
-                ])
-            ]),
-            ddk.Row([
-                ddk.Card(children=[
-                    ddk.ControlCard(orientation='horizontal', children=[
-                            ddk.ControlItem(children=[
-                                dcc.Dropdown(
-                                    id='plot-variables', 
-                                    multi=True, 
-                                    clearable=True, 
-                                    options=variable_options, 
-                                    placeholder='Select variables for timeseries plots.',
-                                    value=plot_variables
-                                ),
-                            ]),
-                            ddk.ControlItem(children=[
-                                dcc.Checklist(id='plots-per', options=[{'label': 'One plot per drone', 'value': 'one'}], value=check_plots_per) 
-                            ]),
-                            ddk.ControlItem(children=[
-                                dcc.Dropdown(
-                                    id='plots-decimation',
-                                    options=[
-                                        {'label': '1 sample/24 hours', 'value': '24'},
-                                        {'label': '1 sample/18 hours', 'value': '18'},
-                                        {'label': '1 sample/15 hours', 'value': '15'},
-                                        {'label': '1 sample/12 hours', 'value': '12'},
-                                        {'label': '1 sample/9 hours', 'value': '9'},
-                                        {'label': '1 sample/6 hours', 'value': '6'},
-                                        {'label': '1 sample/3 hours', 'value': '3'},
-                                        {'label': 'No sub-sampling', 'value': '0'},
-                                    ],
-                                    multi=False,
-                                    clearable=False,
-                                    value=plots_decimation
-                                ),
-                            ]),
-                            ddk.ControlItem(children=[
-                                dcc.Dropdown(
-                                    id='plots-mode',
-                                    options=[
-                                        {'label': 'Markers', 'value': 'markers'},
-                                        {'label': 'Lines', 'value': 'lines'},
-                                        {'label': 'Both', 'value': 'both'},
-                                    ],
-                                    multi=False,
-                                    clearable=False,
-                                    placeholder='Line mode',
-                                    value=mode
-                                ),
-                            ]),
-                            ddk.ControlItem(children=[
-                                dcc.Dropdown(
-                                    id='plots-columns',
-                                    options=[
-                                        {'label': '1 column', 'value': '1'},
-                                        {'label': '2 columns', 'value': '2'},
-                                        {'label': '3 columns', 'value': '3'},
-                                        {'label': '4 columns', 'value': '4'},
-                                    ],
-                                    multi=False,
-                                    clearable=False,
-                                    placeholder='Maximum columns',
-                                    value=set_max_columns
-                                ),
-                            ])
-                        
+                        ])
                     ]),
+                    ddk.ControlCard(width=1, children=[
+                        ddk.ControlItem(label='Add a trace of this variable to the map:', children=[
+                        dcc.Dropdown(id='trace-variable', options=mission_variables, value=mission_variables_value, multi=False)
+                        ]),
+                    ]),
+                ]),
+                ddk.Card(width=.7, children=[
+                    dcc.Loading(dcc.Graph(id='trajectory-map'))
+                ]),
+                ddk.ControlCard(width=1, orientation='horizontal', children=[
+                    ddk.ControlItem(width=.3, label='Timeseries Variables:', children=[
+                        dcc.Dropdown(id='timeseries-variables', options=mission_variables, multi=True)
+                    ]),
+                    ddk.ControlItem(width=.6, children=[
+                            dcc.Loading([html.Div(id='message', children='Resampling...', style={'visibility':'hidden', 'width':'100%'}), html.Div(id='loader', style={'display':'none'})]),
+                        ]
+                    ),
+                    ddk.ControlItem(width=.1, children=[
+                            html.Button(id="reset", children="Reset", style={'float':'right'}),
+                        ]
+                    )
+                ]),
+                ddk.Card(width=1., children=[
                     html.Progress(id="progress-bar", value="0", style={'visibility':'hidden', 'width':'100%'}),
-                    dcc.Loading(ddk.Graph(id='timeseries-plots', figure=blank_graph))
+                    ddk.Graph(id='timeseries-plots', figure=constants.get_blank('Choose what to plot with controls above'))
                 ])
-            ]),
-            dbc.Modal(id='download-dialog', children=[
-                dbc.ModalHeader(children=['Download links for the drones show in the timeseries plot:']),
-                dbc.ModalBody(id='download-links', children="some links"),
-                dbc.ModalFooter(dbc.Button("Close", id="close", className="ml-auto")),
             ])
-        ])
-        return layout
-
+        ]
+    else:
+        layout = html.Div('No mission id was included on the page URL.')
+    return layout
 
 
 @callback(
     [
-        Output('download-dialog', 'is_open'),
-        Output('download-links', 'children')
+        Output('drones', 'value')
     ],
     [
-        Input('download', 'n_clicks'),
-        Input('close', 'n_clicks')
+        Input('trajectory-map', 'clickData')
+    ],
+    [
+        State('drones', 'value')
     ]
 )
-def open_download_dialog(open_click, close_click):
-    if ctx.triggered_id is None:
-        return [False, dash.no_update]
-    if "close" in ctx.triggered_id:
-        return [False, dash.no_update]
-    download_s = constants.redis_instance.hget("downloads", "urls")
-    thead = html.Thead(html.Tr([html.Th("Saildrone"), html.Th("CSV"), html.Th("HTML"), html.Th("netCDF")]))
-    body_rows = []
-    if download_s is not None and len(download_s) > 0 and 'download' in ctx.triggered_id:
-        download_dict = json.loads(download_s)
-        for drone_down in download_dict:
-            csv_url = download_dict[drone_down]
-            html_url = csv_url.replace('.csv', '.htmlTable')
-            netcdf_url = csv_url.replace('.csv', '.ncCF')
-            row = html.Tr(
-                    [
-                        html.Td(drone_down, style={"width":"25%"}), 
-                        html.Td(dcc.Link('.csv', href=csv_url, target='_blank'), style={"width":"25%"}), 
-                        html.Td(dcc.Link('.html', href=html_url, target='_blank'), style={"width":"25%"}), 
-                        html.Td(dcc.Link('.ncCF', href=netcdf_url, target='_blank'), style={"width":"25%"})
-                    ]
-                )
-            body_rows.append(row)
-        table = html.Table(children=[thead, html.Tbody(children=body_rows)], style={"width":"100%"})
-        return [True, table]
-    else:
-        return [False, dash.no_update]
+def drone_click(click_data, state_drones):
+    if click_data is not None:
+        top_click = click_data['points'][0]
+        drone = top_click['customdata']
+        if state_drones is None:
+            state_drones = []
+        if drone not in state_drones:
+            state_drones.append(drone)
+        return [state_drones]
+    return no_update
 
 
 @callback(
-[
-    Output('url', 'search'),
-    Output('url', 'refresh')
-],[
-    Input('drone', 'value'),
-    Input('trace-decimation', 'value'),
-    Input('trace-variable', 'value'),
-    Input('plots-decimation', 'value'),
-    Input('plot-variables', 'value'),
-    Input('date-range', 'start_date'),
-    Input('date-range', 'end_date'),
-    Input('plots-columns', 'value'),
-    Input('plots-mode', 'value'),
-    Input('plots-per', 'value'),
-],[
-    State('url', 'search')
-]
+    [
+        Output('trajectory-map', 'figure')
+    ],
+    [
+        Input('trace-variable', 'value'),
+        Input('drones', 'value'),
+        Input('date-range', 'start_date'),
+        Input('date-range', 'end-date'),
+    ],
 )
-def set_search(drone,
-               trace_decimation,
-               trace_variable,
-               plots_decimation,
-               plot_variables,
-               selected_start_date,
-               selected_end_date,
-               num_plot_cols,
-               plot_mode,
-               plots_per,
-               state_search
-            ):
+def plot_locations_and_trajectory(in_variable, in_drones, in_start_date, in_end_date):
+    mission_id = constants.redis_instance.hget('mission', 'current_mission').decode("utf-8")
+    mission_config = json.loads(constants.redis_instance.hget("mission", mission_id))
+    df = db.get_mission_locations(mission_id, mission_config['dsg_id'])
+    df['location_text'] = '<b>' + df['trajectory'].astype(str) + '</b>' +\
+                          '<br>lat=' + df['latitude'].apply(lambda x: '{:,.2f}'.format(x)) +\
+                          '<br>lon=' + df['longitude'].apply(lambda x: '{:,.2f}'.format(x)) +\
+                          '<br>time=' + df['time'].astype(str)   
+
+    figure = go.Figure()
+    drones = df['trajectory'].unique()
+    drones.sort()
+    for idx, drone in enumerate(drones):
+        ddf = df.loc[df['trajectory']==drone]
+        location_trace = go.Scattermap(lat=ddf['latitude'], 
+                                          lon=ddf['longitude'],
+                                          marker=dict(color=mission_config['drones'][drone]['color']), 
+                                          name=str(drone),
+                                          hoverinfo='text',
+                                          hovertext=ddf['location_text'],
+                                          customdata=ddf['trajectory'],
+                                          uid=str(drone)
+                                          )
+        figure.add_trace(location_trace)
     
-    if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
-    
-    if 'mission_id' in state_params:
-        # I don't know how we would get here without this being set
-        mission_id = state_params['mission_id']
-        s = '?mission_id=' + mission_id[0]
+    time_con = ''
+    if in_start_date is not None and len(in_start_date) > 0:
+        time_con = '&time>=' + in_start_date
+    if in_end_date is not None and len(in_end_date) > 0:
+        time_con = '&time<=' + in_end_date
 
 
-    if drone is not None:
-        if isinstance(drone, list):
-            for d in drone:
-                s = s + '&drone=' + d
-        elif isinstance(drone, str):
-            # if drone in check_mission_drones:
-            s = s + '&drone=' + drone
-    if trace_decimation is not None:
-        if len(s) == 1:
-            s = s + 'trace_decimation=' + str(trace_decimation)
-        else:
-            s = s + '&trace_decimation=' + str(trace_decimation)
-    if trace_variable is not None:
-        if len(s) == 1:
-            s = s + 'trace_variable=' + trace_variable
-        else:
-            s = s + '&trace_variable=' + trace_variable
-    if plots_decimation is not None:
-        if len(s) == 1:
-            s = s + 'plots_decimation=' + str(plots_decimation)
-        else:
-            s = s + '&plots_decimation=' + str(plots_decimation)
-    if plot_variables is not None:
-        if isinstance(plot_variables, list):
-            for ts in plot_variables:
-                if len(s) == 1:
-                    s = s + 'timeseries=' + ts
-                else:
-                    s = s + '&timeseries=' + ts
-        elif isinstance(plot_variables, str):
-            s = s + '&timeseries=' + plot_variables
-
-    if selected_start_date is not None:
-        if len(selected_start_date) > 0:
-            s = s + '&start_date=' + selected_start_date
-
-    if selected_end_date is not None:
-        if len(selected_end_date) > 0:
-            s = s + '&end_date=' + selected_end_date
-
-    if num_plot_cols is not None:
-        s = s + '&columns=' + str(num_plot_cols)
-
-    if plot_mode is not None:
-        s = s + '&mode=' + plot_mode
-
-    pp_value = 'all'
-    if plots_per is not None:
-        if isinstance(plots_per, list):
-            if len(plots_per) > 0:
-                pp_value = plots_per[0]
-        if len(s) == 1:
-            s = s + 'plots_per=' + str(pp_value)
-        else:
-            s = s + '&plots_per=' + str(pp_value)
-
-    if len(s) == 1:
-        return ['']
-    else:
-        return [s, False]
-
-
-@callback([
-    Output('trace-trigger', 'data'),
-], [
-    Input('drone', 'value'),
-    Input('trace-decimation', 'value'),
-    Input('trace-variable', 'value'),
-    Input('date-range', 'start_date'),
-    Input('date-range', 'end_date')
-], [
-    State('url', 'search')
-]
-)
-def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date, selected_end_date, state_search):
-
-    # Bail immediately if you don't have drones or you don't have a variable to plot
-    if drone is None:
-        raise exceptions.PreventUpdate
-    if trace_variable is None:
-        raise exceptions.PreventUpdate
-
-    if len(drone) == 0:
-        raise exceptions.PreventUpdate
-    
-    if len(trace_variable) == 0:
-        raise exceptions.PreventUpdate
-
-    if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
-        
-    if 'mission_id' in state_params:
-        # I don't know how we would get here without this being set
-        cur_id = state_params['mission_id'][0]
-
-    trace_config = {'config': {}}
-    drones_selected = []
-    check_mission_drones = []
-
-    if cur_id is not None:
-        cur_mission = json.loads(constants.redis_instance.hget("mission", cur_id))
-        check_mission_drones = cur_mission['drones']
-    if isinstance(drone, list):
-        if len(check_mission_drones) > 0:
-            drone[:] = filterfalse(lambda x: x not in check_mission_drones, drone)
-        drones_selected = drone
-    elif isinstance(drone, str):
-        if len(check_mission_drones) > 0:
-            if drone in check_mission_drones:
-                drones_selected = [drone]
-    if len(drones_selected) > 0:
-        trace_config['config']['drones'] = drones_selected
-
-    if trace_decimation is None:
-        trace_decimation = "24"
-    trace_config['config']['trace_decimation'] = trace_decimation
-
-    if len(trace_variable) > 0:
-        if isinstance(trace_variable, list):
-            trace_config['config']['trace_variable'] = trace_variable
-        else:
-            trace_config['config']['trace_variable'] = [trace_variable]
-    if selected_start_date is not None:
-        if len(selected_start_date) > 0:
-            if isinstance(selected_start_date, list):
-                trace_config['config']['start_date'] = selected_start_date[0]
-            else:
-                trace_config['config']['start_date'] = selected_start_date
-
-    if selected_end_date is not None:
-        if len(selected_end_date) > 0:
-            if isinstance(selected_end_date, list):
-                trace_config['config']['end_date'] = selected_end_date[0]
-            else:
-                trace_config['config']['end_date'] = selected_end_date
-    constants.redis_instance.hset("saildrone", "trace_config", json.dumps(trace_config))
-    return ['go']
-
-
-@callback([
-    Output('trajectory-map', 'figure'),
-], [
-    Input('trace-trigger', 'data'),
-], [
-    State('url', 'search')
-], prevent_initial_call=True, background=True)
-def make_trajectory_trace(trace_config, state_search):
-    if trace_config is None:
-        raise dash.exceptions.PreventUpdate
-    elif len(trace_config) == 0:
-        raise dash.exceptions.PreventUpdate
-
-    if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
-        
-    if 'mission_id' in state_params:
-        # I don't know how we would get here without this being set
-        cur_mission_id = state_params['mission_id'][0]
-
-
-    if cur_mission_id is None:
-        raise dash.exceptions.PreventUpdate
-    elif len(cur_mission_id) == 0:
-        raise dash.exceptions.PreventUpdate
-
-    trace_decimation = 24
-    trace_start_date = None
-    trace_end_date = None
-
-    trace_json = json.loads(constants.redis_instance.hget("saildrone", "trace_config"))
-    if 'drones' in trace_json['config']:
-        pdrones = trace_json['config']['drones']
-    else:
-        return [blank_map]
-
-    if 'trace_variable' in trace_json['config']:
-        trace_variable = trace_json['config']['trace_variable']
-    else:
-        return [blank_map]
-
-    # don't have to have a decimation value, but it's gonna be there anyway
-    if 'trace_decimation' in trace_json['config']:
-        trace_decimation_params = trace_json['config']['trace_decimation']
-        trace_decimation = int(trace_decimation_params)
-
-    if 'start_date' in trace_json['config']:
-        trace_start_date = trace_json['config']['start_date']
-    if 'end_date' in trace_json['config']:
-        trace_end_date = trace_json['config']['end_date']
-
-    if 'time' not in trace_variable:
-        trace_variable.append('time')
-
-    the_cur_mission = json.loads(constants.redis_instance.hget("mission", cur_mission_id))
-    cur_drones = the_cur_mission['drones']
-    cur_long_names = the_cur_mission['long_names']
-
-    if 'latitude' not in trace_variable:
-        trace_variable.append('latitude')
-    if 'longitude' not in trace_variable:
-        trace_variable.append('longitude')
-    if 'trajectory' not in trace_variable:
-        trace_variable.append('trajectory')
-    req_var = ",".join(trace_variable)
-
-    order_by = '&orderBy("time")'
-    if trace_decimation > 0:
-        order_by = '&orderByClosest("time/' + str(trace_decimation) + 'hours")'
-    if trace_start_date is not None:
-        order_by = order_by + '&time>=' + trace_start_date
-    #if trace_end_date is not None and 'seatrial' not in cur_mission_id:
-    if trace_end_date is not None:
-        if '00:00:00' in trace_end_date:
-            trace_end_date = trace_end_date.replace('00:00:00', "23:59:59")
-        order_by = order_by + '&time<=' + trace_end_date
-    data_tables = []
-    for drone_id in pdrones:
-        base_url = cur_drones[drone_id]['url'] + '.csv?'
-        traj_query = '&trajectory="' + drone_id + '"' + order_by
-        encoded_query = urllib.parse.quote(traj_query, safe='&()=:/')
-        tr_drone_url = base_url + req_var + encoded_query
-        try:
-            d_df = pd.read_csv(tr_drone_url, skiprows=[1])
-            data_tables.append(d_df)
-        except Exception as ex:
-            print('Trajectory plot: exception getting data from url: ' + tr_drone_url)
-            print('e=' + str(ex))
-            continue
-
-    if len(data_tables) == 0:
-        return [get_blank('No data for this combination of selections.')]
-
-    df = pd.concat(data_tables)
-
-    if df.shape[0] < 3:
-        return [get_blank('No data available for this combination of selections.')]
-
-    df = df[df[trace_variable[0]].notna()]
-    df.loc[:, 'text_time'] = df['time'].astype(str)
-    df.loc[:, 'millis'] = pd.to_datetime(df['time']).view(np.int64)
-    df.loc[:, 'text'] = df['text_time'] + "<br>" + df['trajectory'].astype(str) + "<br>" + trace_variable[0] + '=' + df[
-        trace_variable[0]].astype(str)
-    plot_var = trace_variable[0]
-    name_var = trace_variable[0]
-    color_scale = 'inferno'
-    color_bar_opts = dict(x=-.15, title=cur_long_names[name_var])
-    if plot_var == 'time':
-        plot_var = 'millis'
-        name_var = 'Date/Time'
-        color_scale = 'cividis_r'
-        color_bar_opts = dict(x=-.15, title=name_var, ticktext=[df['text_time'].iloc[0], df['text_time'].iloc[-1]],
-                              tickvals=[df['millis'].iloc[0], df['millis'].iloc[-1]])
-    zoom, center = zc.zoom_center(lons=df['longitude'], lats=df['latitude'])
-    annotation = None
-    if df.shape[0] > 25000:
-        df = df.sample(n=25000).sort_values(by=['time', 'trajectory'], ascending=True)
-        annotation = 'Sub-sampled to 25,000 points.'
-    location_trace = go.Figure(go.Scattermapbox(lat=df["latitude"], lon=df["longitude"],
-                                      text=df['text'],
-                                      marker=dict(showscale=True, color=df[plot_var],
-                                                  colorscale=color_scale, size=8,
-                                                  colorbar=color_bar_opts, 
+    if in_variable is not None and len(in_variable) > 0 and in_drones is not None and len(in_drones) > 0:
+        # Create a trace to add to the figure            
+        n = int(50000/(len(in_drones)))
+        drone_dfs = []
+        for idx, drone in enumerate(in_drones):
+            url = mission_config['drones'][drone]['url'] + '.csv?time,latitude,longitude,trajectory,' + in_variable + time_con
+            tdf = pd.read_csv(url, skiprows=[1])
+            tdf = tdf.loc[tdf['time'].notna()]
+            tdf = tdf.loc[tdf[in_variable].notna()]
+            tdf.reset_index(inplace=True)
+            tdf['millis'] = pd.to_datetime(tdf['time']).astype('int64')
+            x = tdf['millis'].to_numpy()
+            y = tdf[in_variable].to_numpy()
+            # Downsample to n_out points using the (possible irregularly spaced) x-data
+            s_ds = MinMaxLTTBDownsampler().downsample(x, y, n_out=n)
+            tdf = tdf.iloc[s_ds]
+            drone_dfs.append(tdf)
+        pdf = pd.concat(drone_dfs)
+        pdf['trace_text'] = '<b>' + pdf['trajectory'].astype(str) + '</b><br>' +\
+                                in_variable + '=' + pdf[in_variable].apply(lambda x: '{:,.2f}'.format(x)) + '<br>' \
+                            'lat=' + pdf['latitude'].apply(lambda x: '{:,.2f}'.format(x)) + '<br>' + \
+                            'lon=' + pdf['longitude'].apply(lambda x: '{:,.2f}'.format(x)) + '<br>' + \
+                            'time=' + pdf['time'].astype(str) 
+        trace = go.Scattermap(lat=pdf["latitude"], lon=pdf["longitude"],
+                                    marker=dict(showscale=True, color=pdf[in_variable],
+                                                colorscale='Viridis', size=8,
+                                                colorbar=dict(
+                                                    title_side='right',
+                                                    title_font_size=16,
+                                                    tickfont_size=16,
+                                                    title_text=in_variable,
+                                                    len=.9
                                                 )
-                                ))
-    if annotation is not None:
-        location_trace.add_annotation(text=annotation,
-                  xref="paper", yref="paper",
-                  x=0.01, y=0.01, showarrow=False)                           
-    location_trace.update_layout(
-        height=short_map_height, margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        mapbox_style="white-bg",
-        mapbox_layers=[
-            {
-                "below": 'traces',
-                "sourcetype": "raster",
-                "sourceattribution": "Powered by Esri",
-                "source": [
-                    "https://ibasemaps-api.arcgis.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}?token=" + constants.ESRI_API_KEY
-                ]
-            }
-        ],
-        mapbox_zoom=zoom,
-        mapbox_center=center,
+                                            ),
+                                    name=in_variable,
+                                    hoverinfo='text',
+                                    hovertext=pdf['trace_text'],
+                                    
+                            )
+        figure.add_trace(trace)
+    zoom, center = zc.zoom_center(df['longitude'], df['latitude'])
+    figure.update_layout(
+        legend_title='Drone:',
+        legend_orientation="v",
+        legend_x=0.,
+        map_zoom=zoom,
+        map_center=center,
+        margin={'r':0, 'l':0, 't':0, 'b':0},
+        uirevision='location_map'
     )
+    figure.update_legends(uirevision='no_update')
+    return [figure]
 
-    location_trace.update_geos(fitbounds='locations',
-                               showcoastlines=True, coastlinecolor="RebeccaPurple",
-                               showland=True, landcolor="LightGreen",
-                               showocean=True, oceancolor="Azure",
-                               showlakes=True, lakecolor="Blue", projection=dict(type="mercator"),
-                               )
-    ct = datetime.datetime.now()
-    
-    print('At ' + str(ct) + ' plotting trajectory of ' + str(trace_variable[0]) + ' for ' + str(pdrones) + ' from ' + the_cur_mission['ui']['title'])
-    return [location_trace]
-
-
-@callback([
-    Output('plots-trigger', 'data'),
-], [
-    Input('drone', 'value'),
-    Input('plots-decimation', 'value'),
-    Input('plot-variables', 'value'),
-    Input('date-range', 'start_date'),
-    Input('date-range', 'end_date'),
-    Input('plots-columns', 'value'),
-    Input('plots-mode', 'value'),
-    Input('plots-per', 'value'),
-], [
-    State('url', 'search')
-]
+@callback (
+    [
+        Output('timeseries-plots', 'figure', allow_duplicate=True),
+        Output('loader', 'children', allow_duplicate=True),
+    ],
+    [
+        Input('timeseries-variables', 'value'),
+        Input('drones', 'value'),
+        Input('date-range', 'start_date'),
+        Input('date-range', 'end-date'),
+    ], 
+    background=True,
+    running=[
+        (
+            Output("progress-bar", "style"),
+            {"visibility": "visible", "width":"100%"},
+            {"visibility": "hidden", "widht": "100%"},
+        )
+    ],
+    prevent_initial_call=True, 
+    progress=[Output("progress-bar", "value"), Output("progress-bar", "max")],
 )
-def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date, selected_end_date, columns, mode, plots_per, state_search):
-
-    if drone is None:
-        raise exceptions.PreventUpdate
-    if plot_variables is None:
-        raise exceptions.PreventUpdate
-
-    if len(drone) == 0:
-        raise exceptions.PreventUpdate
-    
-    if len(plot_variables) == 0:
-        raise exceptions.PreventUpdate
-
-    if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
-        
-    if 'mission_id' in state_params:
-        # I don't know how we would get here without this being set
-        cur_id = state_params['mission_id'][0]
-
-    plots_config = {'config': {}}
-
-    if mode is None:
-        mode = 'lines'
-    plots_config['config']['mode'] = mode
-    if columns is None:
-        columns = max_columns
-    plots_config['config']['columns'] = columns
-    drones_selected = []
-    check_mission_drones = []
-
-    if cur_id is not None:
-        cur_mission = json.loads(constants.redis_instance.hget("mission", cur_id))
-        check_mission_drones = cur_mission['drones']
-    if isinstance(drone, list):
-        if len(check_mission_drones) > 0:
-            drone[:] = filterfalse(lambda x: x not in check_mission_drones, drone)
-        drones_selected = drone
-    elif isinstance(drone, str):
-        if len(check_mission_drones) > 0:
-            if drone in check_mission_drones:
-                drones_selected = [drone]
-    if len(drones_selected) > 0:
-        plots_config['config']['drones'] = drones_selected
+def timeseries_plots(set_progress, in_variables, in_drones, in_start_date, in_end_date):
+    set_progress(["0","0"])
+    if in_variables is not None and len(in_variables) > 0 and in_drones is not None:
+        mission_id = constants.redis_instance.hget('mission', 'current_mission').decode("utf-8")
+        mission_config = json.loads(constants.redis_instance.hget("mission", mission_id))
+        time_con = ''
+        if in_start_date is not None and len(in_start_date) > 0:
+            time_con = '&time>=' + in_start_date
+        if in_end_date is not None and len(in_end_date) > 0:
+            time_con = '&time<=' + in_end_date
+        figure = create_subplot(mission_config, in_variables)
+        uirevision = '_'.join(in_drones)+"_"+"_".join(in_variables)
+        sub_sample_ratio = 1.
+        progress_max = len(in_drones) + len(in_variables) + 2
+        progress = 1
+        set_progress([str(progress), str(progress_max)])
+        for dix, drone in enumerate(in_drones):
+            get_vars = ','.join(in_variables)
+            url = mission_config['drones'][drone]['url'] + '.csv?time,trajectory,' + get_vars + time_con
+            tdf = pd.read_csv(url, skiprows=[1])
+            tdf = tdf.loc[tdf['time'].notna()]
+            tdf.reset_index(inplace=True)
+            tdf['millis'] = pd.to_datetime(tdf['time']).astype('int64')
+            progress = progress + 1
+            set_progress([str(progress), str(progress_max)])
+            for vix, var in enumerate(in_variables):
+                plot_df = tdf[['time','millis','trajectory',var]]
+                plot_df.reset_index(inplace=True)
+                constants.redis_instance.hset("cache", mission_id+"_"+drone+"_"+var, json.dumps(plot_df.to_json()))
+                sub_sample_ratio, trace = make_trace(plot_df, drone, var, mission_config['drones'][drone]['color'], vix)
+                figure.add_trace(trace, row=vix+1, col=1)
+                progress = progress + 1
+                set_progress([str(progress), str(progress_max)])
+        figure = annotate_figure(figure, in_variables, sub_sample_ratio, mission_config)
+        set_progress([str(progress_max), str(progress_max)])
+        set_progress(["0","0"])
+        return [figure, '']
     else:
-        raise exceptions.PreventUpdate
-
-    if plots_decimation is None:
-        plots_decimation = "24"
-    plots_config['config']['plots_decimation'] = plots_decimation
-    
-    pp_value = 'all'
-    if plots_per is not None:
-        if isinstance(plots_per, list):
-            if len(plots_per) > 0:
-                pp_value = plots_per[0]
-        else:
-            pp_value = plots_per
-    plots_config['config']['plots_per'] = pp_value
-    
-    if isinstance(plot_variables, list):
-        if len(plot_variables) > 0:
-            plots_config['config']['timeseries'] = plot_variables
-        else:
-            raise exceptions.PreventUpdate
-    else:
-        if len(plot_variables) > 0:
-            plots_config['config']['timeseries'] = [plot_variables]
-        else:
-            raise exceptions.PreventUpdate
-
-    if selected_start_date is not None:
-        if len(selected_start_date) > 0:
-            plots_config['config']['start_date'] = selected_start_date
-    if selected_end_date is not None:
-        if len(selected_end_date) > 0:
-            plots_config['config']['end_date'] = selected_end_date
-
-    constants.redis_instance.hset("saildrone", "plots_config", json.dumps(plots_config))
-    return ['go']
-
+        return no_update, no_update
 
 @callback(
-    Output('timeseries-plots', 'figure'),
-    Output('download', 'disabled'),
-    Input('plots-trigger', 'data'),
-    State('url', 'search'),
+    [
+        Output('timeseries-plots', 'figure', allow_duplicate=True),
+        Output('loader', 'children', allow_duplicate=True),
+    ],
+    [
+        Input('timeseries-plots', 'relayoutData'),
+        Input('reset', 'n_clicks')
+    ],
+    [
+        State('drones', 'value'),
+        State('timeseries-variables', 'value')
+    ], 
     background=True,
     running=[
         (
@@ -811,285 +299,149 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
             {"visibility": "visible", "width":"100%"},
             {"visibility": "hidden", "widht": "100%"},
         ),
+        (
+            Output("message", "style"),
+            {"visibility": "visible", "width":"100%"},
+            {"visibility": "hidden", "widht": "100%"},
+        )
     ],
+    prevent_initial_call=True, 
     progress=[Output("progress-bar", "value"), Output("progress-bar", "max")],
-    prevent_initial_call=True,    
 )
-def make_plots(set_progress, trigger, state_search):
-    # TIMING
-    # start = time.perf_counter()
-    set_progress(("0","0"))
-    if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
-    
-    if 'mission_id' in state_params:
-        # I don't know how we would get here without this being set
-        cur_mission_id = state_params['mission_id'][0]
-
-    plots = get_blank('Trouble downloading data. Try again, maybe with fewer data points.')
-    # DEBUG print('Set blank plot')
-    num_columns = 3;
-    plots_decimation = 24
-    plots_start_date = None
-    plots_end_date = None
-
-    plots_config = json.loads(constants.redis_instance.hget("saildrone", "plots_config"))
-    # DEBUG print('plots config loaded')
-    # must have a drone, and a variable
-    if 'drones' in plots_config['config']:
-        tsdrones = plots_config['config']['drones']
+def zoom_plot(set_progress, layout_data, click, in_drones, in_variables):
+    reset = False
+    if ctx.triggered_id == 'reset':
+        reset = True
+    mission_id = constants.redis_instance.hget('mission', 'current_mission').decode("utf-8")
+    mission_config = json.loads(constants.redis_instance.hget("mission", mission_id))
+    if layout_data is not None and 'xaxis.range[0]' in layout_data and 'xaxis.range[1]' in layout_data:
+        xstart = layout_data['xaxis.range[0]']
+        xend = layout_data['xaxis.range[1]']
     else:
-        return [blank_graph, True]
-
-    if 'timeseries' in plots_config['config']:
-        plot_variables = plots_config['config']['timeseries']
-        original_order = plot_variables.copy()
-        if len(plot_variables) == 0:
-            return [blank_graph, True]
-    else:
-        return [blank_graph, True]
-    max_progress = (len(tsdrones)*len(plot_variables)) + 2
+        return no_update
+    set_progress(("0", "0"))
+    figure = create_subplot(mission_config, in_variables)
+    sub_sample_ratio = 1.
+    max_progress = len(in_variables) + len(in_drones) 
     progress = 1
     set_progress((str(progress), str(max_progress)))
-
-    # don't have to have a decimation value, but it's gonna be there anyway
-    if 'plots_decimation' in plots_config['config']:
-        plots_decimation = int(plots_config['config']['plots_decimation'])
-    if 'start_date' in plots_config['config']:
-        plots_start_date = plots_config['config']['start_date']
-    if 'end_date' in plots_config['config']:
-        plots_end_date = plots_config['config']['end_date']
-    if 'columns' in plots_config['config']:
-        num_columns = int(plots_config['config']['columns'])
-
-    plots_per = 'all'
-    if 'plots_per' in plots_config['config']:
-        plots_per = plots_config['config']['plots_per']
-
-    the_mission_config = json.loads(constants.redis_instance.hget("mission", cur_mission_id))
-    # DEBUG print('mission config loaded')
-    cur_drones = the_mission_config['drones']
-    # the next thing
-    cur_long_names = the_mission_config['long_names']
-    cur_units = the_mission_config['units']
-    if 'time' not in plot_variables:
-        plot_variables.append('time')
-    if 'latitude' not in plot_variables:
-        plot_variables.append('latitude')
-    if 'longitude' not in plot_variables:
-        plot_variables.append('longitude')
-    if 'trajectory' not in plot_variables:
-        plot_variables.append('trajectory')
-
-    order_by = '&orderBy("time")'
-    if plots_decimation > 0:
-        order_by = '&orderByClosest("time/' + str(plots_decimation) + 'hours")'
-    # hack for now because there's only one day
-    download_time_con_start = ''
-    if plots_start_date is not None:
-        order_by = order_by + '&time>=' + plots_start_date
-        download_time_con_start = '&time>=' + plots_start_date
-    #if plot_end_date is not None and 'seatrial' not in cur_mission_id:
-    download_time_con_end = ''
-    if plots_end_date is not None:
-        if '00:00:00' in plots_end_date:
-            plots_end_date = plots_end_date.replace('00:00:00', '23:59:59')
-        order_by = order_by + '&time<=' + plots_end_date
-        download_time_con_end = '&time<=' + plots_end_date
-    # TIMING
-    # setup_over = time.perf_counter()
-    # setup_time = setup_over - start
-    download_urls = {}
-    plot_data_tables = []
-    for d_ts in tsdrones:
-        drone_plot_variables = plot_variables.copy()
-        for plot_var in plot_variables:
-            if plot_var not in cur_drones[d_ts]['variables']:
-                drone_plot_variables.remove(plot_var)
-                
-        req_var = ",".join(drone_plot_variables)
-        url_base = cur_drones[d_ts]['url'] + '.csv?'
-        query = '&trajectory="' + d_ts + '"' + order_by
-        q = urllib.parse.quote(query, safe='&()=:/')
-        full_query = '&trajectory="' + d_ts + '"'
-        fq = urllib.parse.quote(full_query, safe='&()=:/')
-        drone_url = url_base + req_var + q
-        download_urls[d_ts] = url_base + req_var + fq + download_time_con_start + download_time_con_end
-        try:
-            # DEBUG print('reading drone data from ' + drone_url)
-            ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
-            plot_data_tables.append(ts_df)
+    for dix, drone in enumerate(in_drones):
+        progress = progress + 1
+        set_progress((str(progress), str(max_progress)))
+        for vix, var in enumerate(in_variables):
+            cache_id = mission_id+"_"+drone+"_"+var
+            plot_df = pd.read_json(json.loads(constants.redis_instance.hget("cache", cache_id)))
+            # Cut down the dataframe to the timerange in the layout
+            # Unless the reset button was pushed
+            if not reset:
+                plot_df = plot_df.loc[plot_df['time']>=xstart]
+                plot_df = plot_df.loc[plot_df['time']<=xend]
+                plot_df.reset_index(inplace=True)
+            sub_sample_ratio, trace = make_trace(plot_df, drone, var, mission_config['drones'][drone]['color'], vix)
+            figure.add_trace(trace, row=vix+1, col=1)
             progress = progress + 1
             set_progress((str(progress), str(max_progress)))
-        except Exception as e:
-            print('Timeseries plots: exception getting data from ' + drone_url)
-            print('e=', str(e))
-            continue
-    constants.redis_instance.hset("downloads", "urls", json.dumps(download_urls))
-    if len(plot_data_tables) == 0:
-        return [get_blank('No data for this combination of selections.'), True]
-    df = pd.concat(plot_data_tables)
-    if df.shape[0] < 3:
-        return [get_blank('No data for this combination of selections.'), True]
-    df['trajectory'] = df['trajectory'].astype(str)
-    colnames = list(df.columns)
-    df.loc[:, 'text_time'] = df['time'].astype(str)
-    sub_title = ''
-    if df.shape[0] > 25000:
-        sub_title = ' (>25K timeseries sub-sampled to 25,000 points) '
-        df = df.sample(n=25000).sort_values(by=['time', 'trajectory'], ascending=True)
-    subplots = {}
-    titles = {}
-    # DEBUG print('finished subsample')
-    if '24' in str(plots_decimation):
-        fre = '24H'
-    elif '18' in str(plots_decimation):
-        fre = '18H'
-    elif '15' in str(plots_decimation):
-        fre = '15H'
-    elif '12' in str(plots_decimation):
-        fre = '12H'
-    elif '9' in str(plots_decimation):
-        fre = '9H'
-    elif '6' in str(plots_decimation):
-        fre = '6H'
-    elif '3' in str(plots_decimation):
-        fre = '3H'
-    else:
-        fre = '1H'
-    # TIMING
-    # data_read_over = time.perf_counter()
-    # data_read_time = data_read_over - setup_over
-    colnames.remove('latitude')
-    colnames.remove('longitude')
-    colnames.remove('time')
-    colnames.remove('trajectory')
-    mode = 'lines'
-    if 'mode' in plots_config['config']:
-        mode = plots_config['config']['mode']
-    if mode == 'both':
-        mode = 'lines+markers'
-    for var in original_order:
-        if var in df.columns.to_list():
-            dfvar = df[['time', 'text_time', 'trajectory', var]].copy()
-            # dfvar.loc[:, 'text_time'] = dfvar['time'].astype(str)
-            dfvar.loc[:, 'time'] = pd.to_datetime(dfvar['time'])
-            dfvar.dropna(subset=[var], how='all', inplace=True)
-            if dfvar.shape[0] > 2:
-                subtraces = []
-                for drn in tsdrones:
-                    index = sorted(list(cur_drones.keys())).index(drn)
-                    n_color = px.colors.qualitative.Dark24[index % 24]
-                    dfvar_drone = dfvar.loc[(dfvar['trajectory'] == drn)]
-                    if plots_decimation > 0 and dfvar_drone.shape[0] > 3:
-                        df2 = dfvar_drone.set_index('time')
-                        # make a index at the expected delta
-                        fill_dates = pd.date_range(dfvar_drone['time'].iloc[0], dfvar_drone['time'].iloc[-1], freq=fre)
-                        all_dates = fill_dates.append(df2.index)
-                        fill_sort = sorted(all_dates)
-                        pdf3 = df2.reindex(fill_sort)
-                        mask1 = ~pdf3['trajectory'].notna() & ~pdf3['trajectory'].shift().notna()
-                        mask2 = pdf3['trajectory'].notna()
-                        pdf4 = pdf3[mask1 | mask2]
-                        dfvar_drone = pdf4.reset_index()
-                    dfvar_drone = dfvar_drone.sort_values(by=['time', 'trajectory'], ascending=True)
-                    varplot = go.Scattergl(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
-                                        marker={'color': n_color},
-                                        mode=mode, hoverinfo='x+y+name')
-                    progress = progress + 1
-                    set_progress((str(progress), str(max_progress)))
-                    subtraces.append(varplot)
-                    # DEBUG print('plotting ' + str(drn))
-                subplots[var] = subtraces
-                title = var + sub_title
-                if var in cur_long_names:
-                    title = cur_long_names[var] + sub_title
-
-                if var in cur_units:
-                    title = title + ' (' + cur_units[var] + ')'
-                titles[var] = title
-
-    if plots_per == 'all':
-        num_plots = len(subplots)
-    else:
-        num_plots = len(subplots) * len(tsdrones)
-    if num_plots == 0:
-        return [get_blank('No data for this combination of selections.'), True]
-    num_rows = int(num_plots / num_columns)
-    if num_rows == 0:
-        num_rows = num_rows + 1
-    if num_plots > num_columns and num_plots % num_columns > 0:
-        num_rows = num_rows + 1
-    row_h = []
-    for i in range(0, num_rows):
-        row_h.append(1 / num_rows)
-    graph_height = height_of_row * num_rows
-    num_cols = min(num_plots, num_columns)
-
-    titles_list = []
-    if plots_per == 'one':
-        for plot in original_order:
-            next_title = titles[plot]
-            if plot in subplots:
-                c_plots = subplots[plot]
-                for sp in c_plots:
-                    sp_title = next_title + ' at ' + sp['name']
-                    titles_list.append(sp_title)
-    else:
-        for plot in original_order:
-            if plot in subplots:
-                next_title = titles[plot]
-                titles_list.append(next_title)
-
-    plots = make_subplots(rows=num_rows, cols=num_cols, shared_xaxes='all', subplot_titles=titles_list,
-                          shared_yaxes=False,
-                          row_heights=row_h)
-    plot_index = 1
-    col = 1
-    row = 1
-
-    for plot in original_order:
-        if plot in subplots:
-            current_plots = subplots[plot]
-            for i, cp in enumerate(current_plots):
-                plots.add_trace(cp, row=row, col=col)
-                if plots_per == 'one':
-                    plot_index = plot_index + 1
-                    if plot_index > 1:
-                        if col == num_columns:
-                            row = row + 1
-                    col = plot_index % num_columns
-                    if col == 0:
-                        col = num_columns
-            if plots_per == 'all':
-                plot_index = plot_index + 1
-                if plot_index > 1:
-                    if col == num_columns:
-                        row = row + 1
-                col = plot_index % num_columns
-                if col == 0:
-                    col = num_columns
-            # DEBUG print('adding subplot')
-            plots.update_xaxes({'showticklabels': True, 'gridcolor': line_rgb})
-            plots.update_yaxes({'gridcolor': line_rgb})
-
-    plots['layout'].update(height=graph_height, margin=dict(l=80, r=80, b=80, t=80, ))
-    plots.update_traces(showlegend=False)
-    progress = progress + 1
-    set_progress((str(progress), str(max_progress)))
-    ct = datetime.datetime.now()
-
-    # TIMING 
-    # end = time.perf_counter()
-    # plotting_time = end - data_read_over
-    # total_time = end-start
-    # try:
-    #     with open("/workspace/timing.csv", "a") as time_file:
-    #         timings = str(len(original_order))+','+str(len(tsdrones))+','+str(setup_time)+','+str(data_read_time)+','+str(plotting_time)+','+str(total_time)+'\n'
-    #         time_file.write(timings)
-    # except Exception as e:
-    #     print(str(e))
-
-    print('At ' + str(ct) + ' plotting timeseries of ' + str(colnames) + ' for ' + str(tsdrones) + ' from ' + the_mission_config['ui']['title'])
     set_progress(("0", "0"))
-    return [plots, False]
+    figure = annotate_figure(figure, in_variables, sub_sample_ratio, mission_config)
+    return [figure, '']
+
+
+def create_subplot(mission_config, in_variables):
+    titles = []
+    row_hts = []
+    for var in in_variables:
+        title = var
+        if var in mission_config['long_names']:
+            title = mission_config['long_names'][var]
+        if var in mission_config['units']:
+            title = title + ' (' + mission_config['units'][var] + ')'
+        titles.append(title)
+        row_hts.append(row_height)
+    row_count = len(in_variables)
+    vert = .16
+    if row_count > 1:
+        vert = vert/(row_count-1)
+    figure = make_subplots(rows=row_count, 
+                           cols=1, 
+                           shared_xaxes='all', 
+                           subplot_titles=titles,
+                           shared_yaxes=False,
+                           row_heights=row_hts,
+                           vertical_spacing=vert
+                           )
+    return figure
+
+def make_trace(plot_df, drone, var, color, vix):
+    legend = 'legend'
+    if vix > 0:
+        legend = legend + str(vix+1)
+    sub_sample_ratio = 1.0
+    if plot_df.shape[0] > 5000:
+        sub_sample_ratio = 5000/plot_df.shape[0]
+        x = plot_df['millis'].to_numpy()
+        y = plot_df[var].to_numpy()
+        # Downsample to n_out points using the (possible irregularly spaced) x-data
+        s_ds = MinMaxLTTBDownsampler().downsample(x, y, n_out=5000)
+        plot_df = plot_df.iloc[s_ds]
+    plot_df.loc[:,'text'] = '<b>drone=' + str(drone) + '<b><br>time=' + plot_df['time'].astype(str) + '<br>' + var + '=' + plot_df[var].apply(lambda x: '{:,.2f}'.format(x))
+    trace = go.Scattergl(x=plot_df['time'], y=plot_df[var], hoverinfo='text', hovertext=plot_df['text'], marker={'color': color}, showlegend=True, name=str(drone), legendgroup=str(drone), legend=legend)
+    return sub_sample_ratio, trace
+
+
+def annotate_figure(figure, in_variables, sub_sample_ratio, mission_config):
+    figure.update_layout(height=len(in_variables)*row_height, margin={'t':20, 'l':0, 'r':0, 'b': 0} , legend={
+            'orientation': 'h',
+            "y": 1.1,
+            "xref": "container",
+            "yref": "container",
+    })
+    legmap = {}
+    for l, var in enumerate(in_variables):
+        legdef = 'legend'
+        if l > 0:
+            legdef = legdef + str(l+1)
+        legmap[legdef] = {'orientation': 'h', "y": 1.1, "xref": "container", "yref": "container", }
+    figure.update_layout(legmap)
+    if sub_sample_ratio < 1.0:
+        figure.add_annotation(x=0.05,
+                                y=1.055,
+                                xref="paper", 
+                                yref="y domain",
+                                showarrow=False,
+                                text='Sub-sampling ratio: ' + '{:,.2f}'.format(sub_sample_ratio))
+    for vix, var in enumerate(in_variables):
+        short_label = var + '(' + mission_config['units'][var] + ')'
+        figure.update_yaxes({
+            'title': short_label,
+            'titlefont': {'size': 16},
+            'gridcolor': line_rgb,
+            'zeroline': True,
+            'zerolinecolor': line_rgb,
+            'showline': True,
+            'linewidth': 1,
+            'linecolor': line_rgb,
+            'mirror': True,
+            'tickfont': {'size': 16}
+        }, row=vix+1, col=1)
+        figure.update_xaxes({
+            'ticklabelmode': 'period',
+            'showticklabels': True,
+            'gridcolor': line_rgb,
+            'zeroline': True,
+            'zerolinecolor': line_rgb,
+            'showline': True,
+            'linewidth': 1,
+            'linecolor': line_rgb,
+            'mirror': True,
+            'tickfont': {'size': 16},
+            'tickformatstops' : [
+                dict(dtickrange=[1000, 60000], value="%H:%M:%S\n%d%b%Y"),
+                dict(dtickrange=[60000, 3600000], value="%H:%M\n%d%b%Y"),
+                dict(dtickrange=[3600000, 86400000], value="%H:%M\n%d%b%Y"),
+                dict(dtickrange=[86400000, 604800000], value="%e\n%b %Y"),
+                dict(dtickrange=[604800000, "M1"], value="%b\n%Y"),
+                dict(dtickrange=["M1", "M12"], value="%b\n%Y"),
+                dict(dtickrange=["M12", None], value="%Y")
+            ]
+        }, row=vix+1, col=1)
+    return figure

@@ -1,6 +1,7 @@
 celery
 dash-design-kit
 dash
+plotly>=5.24.1
 gunicorn
 pandas
 dash_bootstrap_components
@@ -10,4 +11,5 @@ pg8000
 diskcache
 psutil
 multiprocess
+tsdownsample
 git+https://github.com/noaaroland/sdig.git
