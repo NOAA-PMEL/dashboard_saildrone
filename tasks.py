@@ -11,6 +11,7 @@ import db
 from celery.utils.log import get_task_logger
 import ssl
 import urllib.parse
+import plotly.express as px
 
 ssl._create_default_https_context = ssl._create_unverified_context
 logger = get_task_logger(__name__)
@@ -31,7 +32,8 @@ def update_mission(mid, mission):
     dsg_ids = []
     drones = mission['drones']
     mission_dfs = []
-    for d in drones:
+    for dix, d in enumerate(sorted(drones)):
+        color = px.colors.qualitative.Alphabet[dix]
         logger.debug('Reading drone ' + str(d))
         drone = drones[d]
         info = Info(drone['url']) 
@@ -59,6 +61,7 @@ def update_mission(mid, mission):
         drone_vars, d_long_names, d_units, standard_names, var_types = info.get_variables()
         drones[d]['variables'] = drone_vars
         drones[d]['start_date'] = start_date
+        drones[d]['color'] = color
         start_dates.append(start_date)
         drones[d]['end_date'] = end_date
         end_dates.append(end_date)
