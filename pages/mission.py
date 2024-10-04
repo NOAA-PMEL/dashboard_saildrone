@@ -44,7 +44,6 @@ def layout(mission_id=None, **params):
         for var in variables:
             mission_variables.append({'label': long_names[var], 'value': var})
         mission_variables = sorted(mission_variables, key=lambda d: d['label'])
-        mission_variables_value = variables[0]
         layout = [
             ddk.Card(width=1, children=[
                 ddk.CardHeader(title=mission_config['ui']['title'], children=[
@@ -67,7 +66,7 @@ def layout(mission_id=None, **params):
                     ]),
                     ddk.ControlCard(width=1, children=[
                         ddk.ControlItem(label='Add a trace of this variable to the map:', children=[
-                        dcc.Dropdown(id='trace-variable', options=mission_variables, value=mission_variables_value, multi=False)
+                        dcc.Dropdown(id='trace-variable', options=mission_variables, multi=False)
                         ]),
                     ]),
                 ]),
