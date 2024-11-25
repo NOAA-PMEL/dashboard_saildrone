@@ -53,7 +53,7 @@ def layout():
         mapbox_center=center,
     )
 
-    layout = ddk.Block(children=[
+    layout = ddk.Block(width=1., children=[
         ddk.Graph(id='overview-map', figure=overview_map)
     ])
     return layout
