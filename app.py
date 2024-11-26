@@ -86,11 +86,10 @@ app.layout = ddk.App([
     dcc.Store(id='plots-trigger'),
     dcc.Store(id='trace-trigger'),
     ddk.Sidebar(
-        foldable=True,
         children=[
             html.A(
-                ddk.Logo(
-                    src=app.get_asset_url("pmel-emblem-rgb-2022.png")
+                ddk.Logo(style={'height':'80'},
+                    src=app.get_asset_url("logo-PMEL-lockup-light_noaaPMEL horizontal rgb 2024.png")
                 ), href='https://www.pmel.noaa.gov/'
             ),
             dcc.Link(
@@ -100,7 +99,7 @@ app.layout = ddk.App([
             ddk.Menu(children=menu),
         ]
     ),            
-    ddk.SidebarCompanion(style={'margin-left': '-25px'}, children=[
+    ddk.SidebarCompanion(children=[
         # ddk.PageHeader(children=[
         #     html.Div('Parts of the US government are closed. This site will not be updated; however, NOAA websites and social media channels necessary to protect lives and property will be maintained. See ', style={'display':'inline-block'}), 
         #     html.Div('.', style={'display':'inline-block', 'visibility': 'hidden'}),
@@ -135,7 +134,7 @@ app.layout = ddk.App([
                     dcc.Link(' Disclaimer |', href='https://www.noaa.gov/disclaimer',style={'font-size': '.8em'}),
                     dcc.Link(' Accessibility', href='https://www.pmel.noaa.gov/accessibility',style={'font-size': '.8em'})
                 ]),
-                ddk.Block(width=.7,children=[html.Img(src=app.get_asset_url('pmel-lockup-rgb-2022.png'), style={'height': '90px'})])
+                ddk.Block(width=.7,children=[html.Img(src=app.get_asset_url('emblem-PMEL-lockup_noaalabname horizontal rgb 2024.png'), style={'height': '90px'})])
             ])
         ])
     ]),
