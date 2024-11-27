@@ -88,8 +88,8 @@ app.layout = ddk.App([
     ddk.Sidebar(
         children=[
             html.A(
-                ddk.Logo(style={'height':'80'},
-                    src=app.get_asset_url("logo-PMEL-lockup-light_noaaPMEL horizontal rgb 2024.png")
+                ddk.Logo(style={'height':'80', 'padding': '14px'},
+                    src=app.get_asset_url("logo-PMEL-lockup-light_noaaPMEL_horizontal_rgb_2024.png")
                 ), href='https://www.pmel.noaa.gov/'
             ),
             dcc.Link(
@@ -134,7 +134,7 @@ app.layout = ddk.App([
                     dcc.Link(' Disclaimer |', href='https://www.noaa.gov/disclaimer',style={'font-size': '.8em'}),
                     dcc.Link(' Accessibility', href='https://www.pmel.noaa.gov/accessibility',style={'font-size': '.8em'})
                 ]),
-                ddk.Block(width=.7,children=[html.Img(src=app.get_asset_url('emblem-PMEL-lockup_noaalabname horizontal rgb 2024.png'), style={'height': '90px'})])
+                ddk.Block(width=.7,children=[html.Img(src=app.get_asset_url('logo-PMEL-lockup-light_noaaPMEL_horizontal_rgb_2024.png'), style={'height': '90px', 'padding':'14px'})])
             ])
         ])
     ]),
