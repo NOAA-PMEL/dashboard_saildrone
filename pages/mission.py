@@ -229,10 +229,13 @@ def layout(mission_id=None, **params):
                                 value=req_drones
                             ),
                         ]),
-                        ddk.ControlItem(label="Download data from timeseries plot:", children=[
+                    ]),
+                    ddk.ControlCard(children=[
+                        ddk.CardHeader(title='Data Download'),
+                        ddk.ControlItem(label="Full resolution of variables shown in timeseries plot:", children=[
                              html.Button("Download", id='download', disabled=True)
                         ])
-                    ]),
+                    ])
                 ]),
                 ddk.Block(width=.4,children=[
                     ddk.Card(children=[

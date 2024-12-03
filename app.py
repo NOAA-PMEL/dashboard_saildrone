@@ -81,7 +81,7 @@ for collection in sorted(collections, reverse=True):
 app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True, background_callback_manager=background_callback_manager, external_stylesheets=[dbc.themes.BOOTSTRAP]) 
 server = app.server  # expose server variable for Procfile
 
-app.layout = ddk.App([
+app.layout = ddk.App(show_editor=False, theme=constants.theme, children=[
     dcc.Location(id='url', refresh=False),
     dcc.Store(id='plots-trigger'),
     dcc.Store(id='trace-trigger'),
