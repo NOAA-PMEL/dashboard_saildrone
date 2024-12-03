@@ -998,7 +998,7 @@ def make_plots(set_progress, trigger, state_search):
     annotation = None
     sub_title = ''
     if df.shape[0] > 25000:
-        annotation = ' All timeseries sub-sampled to 25,000 total points each.'
+        annotation = 'All timeseries plots sub-sampled to 25,000 total points each.'
         df = df.sample(n=25000).sort_values(by=['time', 'trajectory'], ascending=True)
     subplots = {}
     titles = {}
