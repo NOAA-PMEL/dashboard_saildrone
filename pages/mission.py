@@ -995,9 +995,10 @@ def make_plots(set_progress, trigger, state_search):
     df['trajectory'] = df['trajectory'].astype(str)
     colnames = list(df.columns)
     df.loc[:, 'text_time'] = df['time'].astype(str)
+    annotation = None
     sub_title = ''
     if df.shape[0] > 25000:
-        sub_title = ' (>25K timeseries sub-sampled to 25,000 points) '
+        annotation = ' All timeseries sub-sampled to 25,000 total points each.'
         df = df.sample(n=25000).sort_values(by=['time', 'trajectory'], ascending=True)
     subplots = {}
     titles = {}
@@ -1135,6 +1136,10 @@ def make_plots(set_progress, trigger, state_search):
             plots.update_yaxes({'gridcolor': line_rgb})
 
     plots['layout'].update(height=graph_height, margin=dict(l=80, r=80, b=80, t=80, ))
+    if annotation is not None:
+        plots.add_annotation(text=annotation,
+                    xref="paper", yref="paper",
+                    x=0.01, y=1.3, showarrow=False)  
     plots.update_traces(showlegend=False)
     progress = progress + 1
     set_progress((str(progress), str(max_progress)))
