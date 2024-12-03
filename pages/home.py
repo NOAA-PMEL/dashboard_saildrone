@@ -38,7 +38,7 @@ def layout():
         legend_x=1.,
         height=1250,
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        mapbox_style="white-bg",
+        map_style="white-bg",
         map_layers=[
             {
                 "below": 'traces',
