@@ -21,7 +21,7 @@ def layout():
 
     df = df.sort_values('mission_id')
 
-    overview_map = px.scatter_mapbox(
+    overview_map = px.scatter_map(
         df, 
         lat='latitude', 
         lon='longitude', 
@@ -39,18 +39,18 @@ def layout():
         height=1250,
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         mapbox_style="white-bg",
-        mapbox_layers=[
+        map_layers=[
             {
                 "below": 'traces',
                 "sourcetype": "raster",
-                "sourceattribution": "Powered by Esri",
+                "sourceattribution": "General Bathymetric Chart of the Oceans (GEBCO); NOAA National Centers for Environmental Information (NCEI)",
                 "source": [
-                    "https://ibasemaps-api.arcgis.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}?token=" + constants.ESRI_API_KEY
+                    'https://tiles.arcgis.com/tiles/C8EMgrsFcRFL6LrL/arcgis/rest/services/GEBCO_basemap_NCEI/MapServer/tile/{z}/{y}/{x}'
                 ]
             }
         ],
-        mapbox_zoom=zoom,
-        mapbox_center=center,
+        map_zoom=zoom,
+        map_center=center,
     )
 
     layout = ddk.Block(width=1., children=[

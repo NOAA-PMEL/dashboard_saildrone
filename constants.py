@@ -16,6 +16,12 @@ ESRI_API_KEY = os.environ.get('ESRI_API_KEY')
 
 locations_table = 'locations'
 
+month_step = 60 * 60 * 24 * 30.25
+week_step = 60 * 60 * 24 * 7.0
+day_step = 60 * 60 * 24
+
+legend_location = 0
+
 # Create a SQLAlchemy connection string from the environment variable `DATABASE_URL`
 # automatically created in your dash app when it is linked to a postgres container
 # on Dash Enterprise. If you're running locally and `DATABASE_URL` is not defined,
