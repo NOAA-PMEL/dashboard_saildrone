@@ -1035,6 +1035,7 @@ def make_plots(set_progress, trigger, state_search):
         mode = plots_config['config']['mode']
     if mode == 'both':
         mode = 'lines+markers'
+    legend_count = 0
     for var in original_order:
         if var in df.columns.to_list():
             dfvar = df[['time', 'text_time', 'trajectory', var]].copy()
@@ -1059,13 +1060,17 @@ def make_plots(set_progress, trigger, state_search):
                         pdf4 = pdf3[mask1 | mask2]
                         dfvar_drone = pdf4.reset_index()
                     dfvar_drone = dfvar_drone.sort_values(by=['time', 'trajectory'], ascending=True)
+                    show_legend=True
+                    if legend_count > 0:
+                        show_legend=False
                     varplot = go.Scattergl(x=dfvar_drone['time'], y=dfvar_drone[var], name=drn,
                                         marker={'color': n_color},
-                                        mode=mode, hoverinfo='x+y+name')
+                                        mode=mode, hoverinfo='x+y+name', showlegend=show_legend, legendgroup=drn)
                     progress = progress + 1
                     set_progress((str(progress), str(max_progress)))
                     subtraces.append(varplot)
                     # DEBUG print('plotting ' + str(drn))
+                legend_count = legend_count+1
                 subplots[var] = subtraces
                 title = var + sub_title
                 if var in cur_long_names:
@@ -1113,12 +1118,12 @@ def make_plots(set_progress, trigger, state_search):
     plot_index = 1
     col = 1
     row = 1
-
     for plot in original_order:
         if plot in subplots:
             current_plots = subplots[plot]
             for i, cp in enumerate(current_plots):
                 plots.add_trace(cp, row=row, col=col)
+                
                 if plots_per == 'one':
                     plot_index = plot_index + 1
                     if plot_index > 1:
@@ -1127,6 +1132,7 @@ def make_plots(set_progress, trigger, state_search):
                     col = plot_index % num_columns
                     if col == 0:
                         col = num_columns
+            legend_count = legend_count + 1
             if plots_per == 'all':
                 plot_index = plot_index + 1
                 if plot_index > 1:
@@ -1138,13 +1144,15 @@ def make_plots(set_progress, trigger, state_search):
             # DEBUG print('adding subplot')
             plots.update_xaxes({'showticklabels': True, 'gridcolor': line_rgb})
             plots.update_yaxes({'gridcolor': line_rgb})
+            # Position the one and only legend that controls all the plots
+            plots.layout['legend']={'yref': 'paper', 'y': 1.3, 'xref': 'paper', 'x': .1, 'orientation': 'h'}
 
     plots['layout'].update(height=graph_height, margin=dict(l=80, r=80, b=80, t=80, ))
     if annotation is not None:
         plots.add_annotation(text=annotation,
                     xref="paper", yref="paper",
                     x=0.01, y=1.3, showarrow=False)  
-    plots.update_traces(showlegend=False)
+    # plots.update_traces(showlegend=False)
     progress = progress + 1
     set_progress((str(progress), str(max_progress)))
     ct = datetime.datetime.now()
