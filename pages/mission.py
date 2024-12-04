@@ -662,6 +662,7 @@ def make_trajectory_trace(trace_config, state_search):
     
     cur_drones = the_cur_mission['drones']
     cur_long_names = the_cur_mission['long_names']
+    cur_units = the_cur_mission['units']
 
     if 'latitude' not in trace_variable:
         trace_variable.append('latitude')
@@ -711,7 +712,10 @@ def make_trajectory_trace(trace_config, state_search):
     plot_var = trace_variable[0]
     name_var = trace_variable[0]
     color_scale = 'inferno'
-    color_bar_opts = dict(x=-.15, title=cur_long_names[name_var])
+    cb_title = cur_long_names[name_var]
+    if name_var in cur_units:
+        cb_title = cb_title + ' (' + cur_units[name_var] + ')'
+    color_bar_opts = dict(x=-.15, title=cb_title, title_side='right')
     if plot_var == 'time':
         plot_var = 'millis'
         name_var = 'Date/Time'
@@ -750,7 +754,7 @@ def make_trajectory_trace(trace_config, state_search):
         map_zoom=zoom,
         map_center=center,
     )
-
+    
     location_trace.update_geos(fitbounds='locations',
                                showcoastlines=True, coastlinecolor="RebeccaPurple",
                                showland=True, landcolor="LightGreen",
