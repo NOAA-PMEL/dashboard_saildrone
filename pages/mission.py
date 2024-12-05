@@ -246,11 +246,12 @@ def layout(mission_id=None, **params):
                                     clearable=False, 
                                     options=trace_variable_options, 
                                     placeholder='Variable for trajectory plot',
-                                    value=trace_variable
+                                    value=trace_variable,
                                 )],
                             ),
                             ddk.ControlItem(width=30, children=[
                                 dcc.Dropdown(id='trace-decimation',
+                                    style=constants.HIDDEN,
                                     options=[
                                         {'label': '1 sample/24 hours', 'value': '24'},
                                         {'label': '1 sample/18 hours', 'value': '18'},
@@ -495,6 +496,7 @@ def set_search(drone,
 
 @callback([
     Output('trace-trigger', 'data'),
+    Output('trace-decimation', 'style')
 ], [
     Input('drone', 'value'),
     Input('trace-decimation', 'value'),
@@ -567,12 +569,16 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
             else:
                 trace_config['config']['end_date'] = selected_end_date
     constants.redis_instance.hset("saildrone", "trace_config", json.dumps(trace_config))
-    return ['go']
+
+    if trace_variable == 'location':
+        visibility = constants.HIDDEN
+    else:
+        visibility = constants.VISIBLE
+    return ['go', visibility]
 
 
 @callback([
     Output('trajectory-map', 'figure'),
-    Output('trace-decimation', 'value', allow_duplicate=True)
 ], [
     Input('trace-trigger', 'data'),
 ], [
@@ -653,7 +659,7 @@ def make_trajectory_trace(trace_config, state_search):
             legend_orientation='v',
             legend_x=constants.legend_location,
         )
-        return [drone_map, "24"]
+        return [drone_map]
 
 
     if 'time' not in trace_variable:
@@ -697,12 +703,12 @@ def make_trajectory_trace(trace_config, state_search):
             continue
 
     if len(data_tables) == 0:
-        return [get_blank('No data for this combination of selections.'), no_update]
+        return [get_blank('No data for this combination of selections.')]
 
     df = pd.concat(data_tables)
 
     if df.shape[0] < 3:
-        return [get_blank('No data available for this combination of selections.'), no_update]
+        return [get_blank('No data available for this combination of selections.')]
 
     df = df[df[trace_variable[0]].notna()]
     df.loc[:, 'text_time'] = df['time'].astype(str)
@@ -764,7 +770,7 @@ def make_trajectory_trace(trace_config, state_search):
     ct = datetime.datetime.now()
     
     print('At ' + str(ct) + ' plotting trajectory of ' + str(trace_variable[0]) + ' for ' + str(pdrones) + ' from ' + the_cur_mission['ui']['title'])
-    return [location_trace, no_update]
+    return [location_trace]
 
 
 @callback([
@@ -1152,7 +1158,7 @@ def make_plots(set_progress, trigger, state_search):
         plots.add_annotation(text=annotation,
                     xref="paper", yref="paper",
                     x=0.01, y=1.3, showarrow=False)  
-    # plots.update_traces(showlegend=False)
+
     progress = progress + 1
     set_progress((str(progress), str(max_progress)))
     ct = datetime.datetime.now()

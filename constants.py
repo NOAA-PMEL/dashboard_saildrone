@@ -44,6 +44,9 @@ else:
     base = '/saildrone/'
     assets = '/saildrone/assets/'
 
+VISIBLE = {'visibility': 'visible'}
+HIDDEN = {'visibility': 'hidden'}
+
 
 def get_blank(message):
     blank_graph = go.Figure(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
