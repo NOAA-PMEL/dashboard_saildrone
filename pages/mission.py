@@ -1,12 +1,12 @@
 import dash
-from dash import html, dcc, callback, exceptions, Input, Output, State, no_update, callback_context
+from dash import html, dcc, callback, exceptions, Input, Output, State, callback_context
 import dash_design_kit as ddk
 import plotly.graph_objects as go
 import plotly.express as px
 import json
 import constants
 import db
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 from itertools import filterfalse
 import pandas as pd
 from plotly.subplots import make_subplots
@@ -29,34 +29,15 @@ d_format = "%Y-%m-%d"
 mission_start_seconds = None
 mission_end_seconds = None
 
-def get_blank(message):
-    blank_graph = go.Figure(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
-    blank_graph.add_trace(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False))
-    blank_graph.update_traces(visible=False)
-    blank_graph.update_layout(
-        xaxis={"visible": False},
-        yaxis={"visible": False},
-        annotations=[
-            {
-                "text": message,
-                "xref": "paper",
-                "yref": "paper",
-                "showarrow": False,
-                "font": {
-                    "size": 14
-                }
-            },
-        ]
-    )
-    return blank_graph
-blank_graph = get_blank('Pick one or more drones<br>Pick a variable')
+blank_graph = constants.get_blank('Pick one or more drones<br>Pick a variable')
+blank_map = constants.get_blank('Pick one or more drones<br>Pick a variable')
 
 dash.register_page(__name__, path="/mission", path_template='/mission/<mission_id>')
 
 def layout(mission_id=None, **params):
     if mission_id is None:
         return html.Div('')
-    mission  = json.loads(constants.redis_instance.hget("mission", mission_id))
+    mission  = json.loads(constants.redis_instance.hget("mission", mission_id))  # pyright: ignore[reportArgumentType]
     df = db.get_mission_locations(mission_id, mission['dsg_id'])
     
     mode = 'lines'
@@ -85,11 +66,6 @@ def layout(mission_id=None, **params):
     if 'plots_decimation' in params:
         plots_decimation_params = params['plots_decimation']
         plots_decimation = plots_decimation_params
-
-    trace_variable = None
-    if 'trace_variable' in params:
-        trace_variable_params = params['trace_variable']
-        trace_variable = trace_variable_params
 
     plot_variables = []
     if 'timeseries' in params:
@@ -136,8 +112,10 @@ def layout(mission_id=None, **params):
     # Sort dict by value
     variable_options = []
     trace_variable_options = [{'label':'Daily Location', 'value':'location'}]
-    if 'trace_varaible in params':
-        trace_variable = params['trace_variable']
+    trace_variable = None
+    if 'trace_variable' in params:
+        trace_variable_params = params['trace_variable']
+        trace_variable = trace_variable_params
     else:
         trace_variable = 'location'
     
@@ -532,9 +510,11 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
     if len(trace_variable) == 0:
         raise exceptions.PreventUpdate
 
+    state_params = {}
     if state_search is not None:
         state_params = parse_qs(state_search[1:])
-        
+
+    cur_id = None 
     if 'mission_id' in state_params:
         # I don't know how we would get here without this being set
         cur_id = state_params['mission_id'][0]
@@ -601,9 +581,12 @@ def make_trajectory_trace(trace_config, state_search):
     elif len(trace_config) == 0:
         raise dash.exceptions.PreventUpdate
 
+    state_params = {} 
     if state_search is not None:
         state_params = parse_qs(state_search[1:])
-        
+
+
+    cur_mission_id = None
     if 'mission_id' in state_params:
         # I don't know how we would get here without this being set
         cur_mission_id = state_params['mission_id'][0]
@@ -703,7 +686,7 @@ def make_trajectory_trace(trace_config, state_search):
     for drone_id in pdrones:
         base_url = cur_drones[drone_id]['url'] + '.csv?'
         traj_query = '&trajectory="' + drone_id + '"' + order_by
-        encoded_query = urllib.parse.quote(traj_query, safe='&()=:/')
+        encoded_query = quote(traj_query, safe='&()=:/')
         tr_drone_url = base_url + req_var + encoded_query
         try:
             d_df = pd.read_csv(tr_drone_url, skiprows=[1])
@@ -714,12 +697,12 @@ def make_trajectory_trace(trace_config, state_search):
             continue
 
     if len(data_tables) == 0:
-        return [get_blank('No data for this combination of selections.')]
+        return [constants.get_blank('No data for this combination of selections.')]
 
     df = pd.concat(data_tables)
 
     if df.shape[0] < 3:
-        return [get_blank('No data available for this combination of selections.')]
+        return [constants.get_blank('No data available for this combination of selections.')]
 
     df = df[df[trace_variable[0]].notna()]
     df.loc[:, 'text_time'] = df['time'].astype(str)
@@ -1138,7 +1121,7 @@ def make_plots(set_progress, trigger, state_search):
     for plot in original_order:
         if plot in subplots:
             current_plots = subplots[plot]
-            for i, cp in enumerate(current_plots):
+            for cp in current_plots:
                 plots.add_trace(cp, row=row, col=col)
                 
                 if plots_per == 'one':
