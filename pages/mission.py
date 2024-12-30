@@ -6,7 +6,7 @@ import plotly.express as px
 import json
 import constants
 import db
-import urllib
+from urllib.parse import parse_qs
 from itertools import filterfalse
 import pandas as pd
 from plotly.subplots import make_subplots
@@ -179,8 +179,8 @@ def layout(mission_id=None, **params):
                 )
             )
         if 'href' in mission['ui']:
-            logo.href = mission['ui']['href']
-            logo.target='_blank'
+            logo['href'] = mission['ui']['href']
+            logo['target'] ='_blank'
         logos.append(logo)
     if 'link_text' in mission['ui'] and 'href' in mission['ui']:
         text = html.A(mission['ui']['link_text'], href = mission['ui']['href'], target='_blank')
@@ -432,8 +432,10 @@ def set_search(drone,
                state_search
             ):
     
+    s = ''
+    state_params = {}
     if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
+        state_params = parse_qs(state_search[1:])
     
     if 'mission_id' in state_params:
         # I don't know how we would get here without this being set
@@ -531,7 +533,7 @@ def set_trace_data(drone, trace_decimation, trace_variable, selected_start_date,
         raise exceptions.PreventUpdate
 
     if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
+        state_params = parse_qs(state_search[1:])
         
     if 'mission_id' in state_params:
         # I don't know how we would get here without this being set
@@ -600,7 +602,7 @@ def make_trajectory_trace(trace_config, state_search):
         raise dash.exceptions.PreventUpdate
 
     if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
+        state_params = parse_qs(state_search[1:])
         
     if 'mission_id' in state_params:
         # I don't know how we would get here without this being set
@@ -811,7 +813,7 @@ def set_plots_data(drone, plots_decimation, plot_variables, selected_start_date,
         raise exceptions.PreventUpdate
 
     if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
+        state_params = parse_qs(state_search[1:])
         
     if 'mission_id' in state_params:
         # I don't know how we would get here without this being set
@@ -900,7 +902,7 @@ def make_plots(set_progress, trigger, state_search):
     # start = time.perf_counter()
     set_progress(("0","0"))
     if state_search is not None:
-        state_params = urllib.parse.parse_qs(state_search[1:])
+        state_params = parse_qs(state_search[1:])
     
     if 'mission_id' in state_params:
         # I don't know how we would get here without this being set

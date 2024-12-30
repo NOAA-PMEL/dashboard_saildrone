@@ -1,19 +1,16 @@
-from dash import Dash, dcc, html, page_container, Input, Output, CeleryManager, DiskcacheManager
+from dash import Dash, dcc, html, page_container, CeleryManager, DiskcacheManager
 
 import dash_design_kit as ddk
 import plotly.express as px
 import json
 import os
-import redis
-import dateutil
+import sys
 import constants
 import dash_bootstrap_components as dbc
-from sdig.erddap.info import Info
 import tasks
 
 import diskcache
 
-import celery
 from celery import Celery
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
@@ -41,7 +38,7 @@ def run_update():
 # Changing to on_after_finalize from on_after_config was the trick to getting
 # the update task scheduled. It was being registered, but never scheduled.
 @celery_app.on_after_finalize.connect
-def setup_periodic_tasks(sender, **kwargs):
+def setup_periodic_tasks(sender):
     # Update all missions once an hour at 32 minutes past
     sender.add_periodic_task(
          crontab(minute='32', hour='*'),
