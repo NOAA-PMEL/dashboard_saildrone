@@ -136,7 +136,16 @@ def layout(mission_id=None, **params):
     # Sort dict by value
     variable_options = []
     trace_variable_options = [{'label':'Daily Location', 'value':'location'}]
-    trace_variable = 'location'
+    if 'trace_varaible in params':
+        trace_variable = params['trace_variable']
+    else:
+        trace_variable = 'location'
+    
+    if trace_variable == 'location':
+        trace_variable_visibility = constants.HIDDEN
+    else:
+        trace_variable_visibility = constants.VISIBLE
+
     m_long_names = mission['long_names']
     for var in m_long_names:
         variable_options.append({'label':m_long_names[var], 'value': var})
@@ -251,7 +260,7 @@ def layout(mission_id=None, **params):
                             ),
                             ddk.ControlItem(width=30, children=[
                                 dcc.Dropdown(id='trace-decimation',
-                                    style=constants.HIDDEN,
+                                    style=trace_variable_visibility,
                                     options=[
                                         {'label': '1 sample/24 hours', 'value': '24'},
                                         {'label': '1 sample/18 hours', 'value': '18'},
@@ -712,7 +721,7 @@ def make_trajectory_trace(trace_config, state_search):
 
     df = df[df[trace_variable[0]].notna()]
     df.loc[:, 'text_time'] = df['time'].astype(str)
-    df.loc[:, 'millis'] = pd.to_datetime(df['time']).view(np.int64)
+    df.loc[:, 'millis'] = pd.to_datetime(df['time']).astype(np.int64)
     df.loc[:, 'text'] = df['text_time'] + "<br>" + df['trajectory'].astype(str) + "<br>" + trace_variable[0] + '=' + df[
         trace_variable[0]].astype(str)
     plot_var = trace_variable[0]
@@ -1014,21 +1023,21 @@ def make_plots(set_progress, trigger, state_search):
     titles = {}
     # DEBUG print('finished subsample')
     if '24' in str(plots_decimation):
-        fre = '24H'
+        fre = '24h'
     elif '18' in str(plots_decimation):
-        fre = '18H'
+        fre = '18h'
     elif '15' in str(plots_decimation):
-        fre = '15H'
+        fre = '15h'
     elif '12' in str(plots_decimation):
-        fre = '12H'
+        fre = '12h'
     elif '9' in str(plots_decimation):
-        fre = '9H'
+        fre = '9h'
     elif '6' in str(plots_decimation):
-        fre = '6H'
+        fre = '6h'
     elif '3' in str(plots_decimation):
-        fre = '3H'
+        fre = '3h'
     else:
-        fre = '1H'
+        fre = '1h'
     # TIMING
     # data_read_over = time.perf_counter()
     # data_read_time = data_read_over - setup_over
