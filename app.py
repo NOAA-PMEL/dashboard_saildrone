@@ -38,7 +38,7 @@ def run_update():
 # Changing to on_after_finalize from on_after_config was the trick to getting
 # the update task scheduled. It was being registered, but never scheduled.
 @celery_app.on_after_finalize.connect                                        # pyright: ignore[reportOptionalMemberAccess]
-def setup_periodic_tasks(sender, *kargs):
+def setup_periodic_tasks(sender, **kwargs):
     # Update all missions once an hour at 32 minutes past
     sender.add_periodic_task(
          crontab(minute='32', hour='*'),
