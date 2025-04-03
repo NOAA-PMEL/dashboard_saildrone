@@ -41,16 +41,15 @@ def update_mission(mid, mission):
         dsg_id = dsg_var[info.get_dsg_type()]
         base_url = drone['url'] + '.csv?'
         time_url = base_url + urllib.parse.quote_plus('time&orderByMinMax("time")')
-        print(time_url)
+        print("time range:", time_url)
         tdf = pd.read_csv(time_url, skiprows=[1])
-        print(tdf)
         start_date = tdf['time'].min()
         end_date = tdf['time'].max()
         req_vars = 'latitude,longitude,time,' + dsg_id
         query = '&orderByClosest("time,1day")&'+dsg_id+'="'+d+'"'
         q = urllib.parse.quote(query)
         url = base_url + req_vars + q
-        print(url)
+        print("Locations:", url)
         df = pd.read_csv(url, skiprows=[1])
         # Don't drop, just take the rows where lat or lon is not NA:
         df = df[df['latitude'].notna()]

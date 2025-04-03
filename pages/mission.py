@@ -6,6 +6,7 @@ import plotly.express as px
 import json
 import constants
 import db
+import urllib
 from urllib.parse import parse_qs, quote
 from itertools import filterfalse
 import pandas as pd
@@ -891,7 +892,7 @@ def make_plots(set_progress, trigger, state_search):
         # I don't know how we would get here without this being set
         cur_mission_id = state_params['mission_id'][0]
 
-    plots = get_blank('Trouble downloading data. Try again, maybe with fewer data points.')
+    plots = constants.get_blank('Trouble downloading data. Try again, maybe with fewer data points.')
     # DEBUG print('Set blank plot')
     num_columns = 3;
     plots_decimation = 24
@@ -981,7 +982,8 @@ def make_plots(set_progress, trigger, state_search):
         drone_url = url_base + req_var + q
         download_urls[d_ts] = url_base + req_var + fq + download_time_con_start + download_time_con_end
         try:
-            # DEBUG print('reading drone data from ' + drone_url)
+            # DEBUG 
+            print('reading drone data from ' + drone_url)
             ts_df = pd.read_csv(drone_url, skiprows=[1], parse_dates=['time'])
             plot_data_tables.append(ts_df)
             progress = progress + 1
@@ -992,10 +994,10 @@ def make_plots(set_progress, trigger, state_search):
             continue
     constants.redis_instance.hset("downloads", "urls", json.dumps(download_urls))
     if len(plot_data_tables) == 0:
-        return [get_blank('No data for this combination of selections.'), True]
+        return [constants.get_blank('No data for this combination of selections.'), True]
     df = pd.concat(plot_data_tables)
     if df.shape[0] < 3:
-        return [get_blank('No data for this combination of selections.'), True]
+        return [constants.get_blank('No data for this combination of selections.'), True]
     df['trajectory'] = df['trajectory'].astype(str)
     colnames = list(df.columns)
     df.loc[:, 'text_time'] = df['time'].astype(str)
@@ -1085,7 +1087,7 @@ def make_plots(set_progress, trigger, state_search):
     else:
         num_plots = len(subplots) * len(tsdrones)
     if num_plots == 0:
-        return [get_blank('No data for this combination of selections.'), True]
+        return [constants.get_blank('No data for this combination of selections.'), True]
     num_rows = int(num_plots / num_columns)
     if num_rows == 0:
         num_rows = num_rows + 1
